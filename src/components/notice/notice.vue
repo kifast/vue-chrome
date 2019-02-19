@@ -37,7 +37,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)">发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
         </el-table-column>
@@ -111,10 +111,19 @@ export default {
             message: '发送公告成功',
             type: 'success'
           })
+          if (row.type === 2) {
+            this._runAutoSend(row)
+          }
         } else {
           this.$message.error('发送公告失败')
         }
       })
+    },
+    // 自动发送
+    _runAutoSend(row) {
+      this.sendTimer = setTimeout(() => {
+        this.sendNotice(row)
+      }, row.time * 1000)
     },
     // 删除item
     delItem(index) {

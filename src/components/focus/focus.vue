@@ -117,7 +117,6 @@ export default {
         this.$message.error(`获取关注信息失败，${res.message}!`)
       } else {
         res = res.shopDO
-        this.userId = res.userId
         let isHas = false
         // this.shopList.forEach((item, index) => {
         //   if (item.title === res.title) {
@@ -131,6 +130,7 @@ export default {
             title: res.title,
             type: 1,
             time: '',
+            userId: res.userId,
             id: new Date().getTime()
           }
           this.shopList.push(item)
@@ -150,7 +150,7 @@ export default {
         bizType: '7',
         source: 'followcard',
         data: {
-          userId: this.userId,
+          userId: this.currentShop.userId,
           type: 'followcard',
           extendParam: `{'feed_id': ${this.feedId}}`
         }
@@ -219,7 +219,7 @@ export default {
             type: 'success'
           })
         } else {
-          this.$message.error(`发送关注卡片失败`)
+          this.$message.error('发送关注卡片失败')
         }
         // 如果是自动发送
         if (this.currentShop.type === 2) {
