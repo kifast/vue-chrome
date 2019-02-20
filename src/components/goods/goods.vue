@@ -6,7 +6,7 @@
         <el-button slot="append" icon="el-icon-search" @click.native="addGoods(goodsUrl)"></el-button>
       </el-input>
       <div class="good-detail" v-if="currentGood">
-        <img class="img" :src="currentGood.imgUrl" alt="">
+        <img class="img" :src="currentGood.imgUrl + '_160x160.jpg_.webp'" alt="">
         <div class="detail">
           <a :href="currentGood.url" class="link">{{currentGood.itemTitle}}</a>
           <div class="flex">
@@ -26,26 +26,37 @@
     <div class="search-box" style="margin-top: 10px;">
       <div class="goods-list">
         <div class="goods-item" v-for="(item, index) in goodsList" :key="index">
-          <el-button type="success" :plain="!item.current" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;" @click="selectGood(index)">{{index+1}}</el-button>
+          <el-button :type="item.isShelves?'danger':'success'" :plain="!item.current" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;" @click="selectGoods(index)">{{index+1}}</el-button>
         </div>
         <div class="goods-item">
-          <el-button type="primary" plain size="small">{{goodsList.length+1}}</el-button>
+          <el-button type="primary" :plain="currentIndex!==-1" :size="currentIndex===-1?'':'small'" @click="addNewGoods">{{goodsList.length+1}}</el-button>
         </div>
       </div>
+    </div>
+    <div style="margin-top: 10px;">
+      <el-button type="success" size="mini" @click="goodsOnShelves">上架</el-button>
+      <el-button size="mini">刷新</el-button>
+      <el-button size="mini">前移</el-button>
+      <el-button size="mini">后移</el-button>
+      <el-button type="danger" size="mini">删除</el-button>
     </div>
   </div>
 </template>
 
 <script>
-import { liveAction } from '@/api'
+import { liveAction, commonPush, getUpGoodsList } from '@/api'
 import { baseImgUrl } from '@/util/config'
+import { urlParse } from '@/util/tools'
+import { getUserId, getToken } from '@/util/token'
+import setPass from '@/util/pass'
 export default {
   name: 'App',
   data() {
     return {
       goodsUrl: '',
       currentIndex: -1,
-      goodsList: []
+      goodsList: [],
+      liveId: urlParse().id
     }
   },
   computed: {
@@ -60,8 +71,9 @@ export default {
   created() {
     if (localStorage.goodsList) {
       this.goodsList = JSON.parse(localStorage.goodsList)
-      this.selectGood(this.goodsList[0])
+      this.resetGoodsList()
     }
+    this.getUpGoods()
   },
   methods: {
     // 查询商品
@@ -97,9 +109,9 @@ export default {
       //       width: 0,
       //       from: 'taobao',
       //       itemPrice: 156.0,
-      //       itemId: 580440954697,
+      //       itemId: 5804409546973,
       //       taokprice: '0.00',
-      //       itemTitle: '光希 玻尿酸补水初见面膜 补水保湿修护提亮肤色清洁女正品'
+      //       itemTitle: '光希 玻尿酸补水初见面膜 补水保湿修护提亮肤色清洁女正品2'
       //     },
       //     httpStatusCode: 200,
       //     msgCode: 'SUCCESS',
@@ -111,6 +123,16 @@ export default {
         if (res.success) {
           let model = res.model
           let { itemTitle, itemPrice, itemId, imgUrl } = model
+          let count = 0
+          this.goodsList.forEach(item => {
+            if (item.itemId === itemId) {
+              count++
+            }
+          })
+          if (count > 0) {
+            this.$message.error('宝贝重复添加')
+            return
+          }
           let item = {
             itemTitle,
             itemPrice,
@@ -121,25 +143,96 @@ export default {
             url: url,
             // 优惠券链接
             link: '',
+            isShelves: false,
             current: true
           }
-          this.goodsList.forEach(item => {
-            item.current = false
-          })
+          this.resetGoodsList()
           this.goodsList.push(item)
-          localStorage.goodsList = JSON.stringify(this.goodsList)
+          this.saveGoodsList()
           this.currentIndex = this.goodsList.length - 1
         } else {
           this.$message.error(res.msgInfo)
         }
       })
     },
-    selectGood(index) {
+    // 上架宝贝
+    goodsOnShelves() {
+      if (this.currentIndex < 0) {
+        return
+      }
+      let currentGood = this.goodsList[this.currentIndex]
+      let draft = {
+        feedType: '502',
+        roomType: 0,
+        nodes: [
+          {
+            type: 'picItem',
+            path: currentGood.imgUrl,
+            content: currentGood.itemTitle,
+            bizId: currentGood.itemId,
+            right: ''
+          }
+        ],
+        parentId: this.liveId,
+        feedId: ''
+      }
+      let params = {
+        _input_charset: 'utf-8',
+        draft: encodeURIComponent(JSON.stringify(draft))
+      }
+      //   let res = { headers: {}, model: { publishTime: '15:12', itemUrl: '//item.taobao.com/item.htm?id=577224665084' }, httpStatusCode: 200, msgCode: 'SUCCESS', msgInfo: '成功', success: true }
+      let res = { headers: {}, model: { isDuplicate: 'true', publishTime: '16:08', itemUrl: '//item.taobao.com/item.htm?id=580440954697' }, httpStatusCode: 200, msgCode: 'SUCCESS', msgInfo: '成功', success: true }
+      //   commonPush(params).then(res => {
+      console.log(res)
+      if (res.success) {
+        currentGood.isShelves = true
+      }
+      this.saveGoodsList()
+      //   })
+    },
+    selectGoods(index) {
       this.currentIndex = index
+      this.resetGoodsList()
+      this.goodsList[index].current = true
+      this.goodsUrl = this.goodsList[index].url
+    },
+    addNewGoods() {
+      this.goodsUrl = ''
+      this.currentIndex = -1
+      this.resetGoodsList()
+    },
+    // 重置宝贝的current
+    resetGoodsList() {
       this.goodsList.forEach(item => {
         item.current = false
       })
-      this.goodsList[index].current = true
+    },
+    saveGoodsList() {
+      localStorage.goodsList = JSON.stringify(this.goodsList)
+    },
+    getUpGoods() {
+      let t = new Date().getTime()
+      let appKey = '12574478'
+      let data = JSON.stringify({ liveId: this.liveId, creatorId: getUserId(), n: 20, groupNum: 0 })
+      let key = getToken() + '&' + t + '&' + appKey + '&' + data
+      let sign = setPass(key)
+      let params = {
+        jsv: '2.4.0',
+        appKey: '12574478',
+        t,
+        sign,
+        api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',
+        v: '2.0',
+        type: 'jsonp',
+        dataType: 'jsonp',
+        // callback: 'mtopjsonp1',
+        data,
+        _: new Date().getTime()
+      }
+      console.log(params)
+      getUpGoodsList(params).then(res => {
+        console.log(res)
+      })
     }
   },
   components: {}
@@ -181,6 +274,7 @@ export default {
   }
   .goods-list {
     .goods-item {
+      height: 34px;
       margin: 5px 5px;
       display: inline-block;
     }

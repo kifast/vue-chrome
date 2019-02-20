@@ -1,4 +1,5 @@
 import api from './api'
+import jsonp from './jsonp'
 import { getToken } from '../util/token'
 // 查询用户名
 export function getUserInfo(data) {
@@ -27,4 +28,13 @@ export function liveAction(data) {
   }
   params = params.substr(0, params.length - 1)
   return api.post(`/live/action.do${params}`, {})
+}
+// 获取上架的商品列表
+export function getUpGoodsList(data) {
+  let options = {
+    param: 'callback',
+    prefix: 'mtopjsonp1'
+  }
+  let url = 'https://h5api.m.taobao.com/h5/mtop.mediaplatform.video.livedetail.itemlist.withpagination/2.0/'
+  return jsonp(url, data, options)
 }

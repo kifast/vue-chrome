@@ -7,3 +7,8 @@ export function getToken() {
 export function setToken(token) {
   return Cookies.set(TokenKey, token)
 }
+
+const userIdKey = 'unb'
+export function getUserId() {
+  return Cookies.get(userIdKey)
+}
