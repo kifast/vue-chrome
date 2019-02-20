@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import {pushFocus} from '@/api'
+import {commonPush} from '@/api'
 import { urlParse } from '@/util/tools'
 export default {
   name: 'Notice',
@@ -105,7 +105,7 @@ export default {
         _input_charset: 'utf-8',
         draft: encodeURIComponent(JSON.stringify(draft))
       }
-      pushFocus(params).then(res => {
+      commonPush(params).then(res => {
         if (res.success) {
           this.$message({
             message: '发送公告成功',
@@ -161,12 +161,6 @@ export default {
 
 <style lang="less">
 .notice-wrapper {
-  .search-box {
-    background: #f5f5f5;
-    padding: 10px;
-    box-shadow: rgb(220, 216, 216) 0px 0px 10px;
-    border: 1px solid rgb(227, 227, 227);
-  }
   .notice-list-wrapper {
     margin-top: 10px;
     background: #f5f5f5;

@@ -2,6 +2,9 @@
   <div id="app">
     <div id="goumee_board" class="interactive-list">
       <el-tabs type="border-card">
+        <el-tab-pane label="宝贝管理">
+           <goods></goods>
+        </el-tab-pane>
         <el-tab-pane label="关注卡片">
            <focus></focus>
         </el-tab-pane>
@@ -17,6 +20,7 @@
 <script>
 import Focus from './components/focus/focus'
 import Notice from './components/notice/notice'
+import Goods from './components/goods/goods'
 export default {
   name: 'App',
   data() {
@@ -26,7 +30,8 @@ export default {
   },
   components: {
     Focus,
-    Notice
+    Notice,
+    Goods
   }
 }
 </script>
@@ -35,6 +40,15 @@ export default {
 * {
   padding: 0;
   margin: 0;
+}
+.search-box {
+  background: #f5f5f5;
+  padding: 10px;
+  box-shadow: rgb(220, 216, 216) 0px 0px 10px;
+  border: 1px solid rgb(227, 227, 227);
+}
+.flex{
+  display: flex;
 }
 .ext-nav {
   li {

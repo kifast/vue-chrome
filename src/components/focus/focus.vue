@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { getUserInfo, addMaterial, pushFocus } from '@/api'
+import { getUserInfo, addMaterial, commonPush } from '@/api'
 import { urlParse } from '@/util/tools'
 export default {
   name: 'Focus',
@@ -110,38 +110,38 @@ export default {
         shopName: this.starName,
         _input_charset: 'utf-8'
       }
-      let res = { shopDO: { title: '构美官方直播', pictureUrl: '//img.alicdn.com/imgextra///img.alicdn.com/imgextra/i4/1950250590/TB2qcbxdbmI.eBjy1zjXXaq5VXa_!!1950250590-0-beehive-scenes.jpg', shopId: 1950250590, userId: 1950250590, isTmall: false } }
-      //   getUserInfo(params).then(res => {
-      console.log(res)
-      if (res.isSuccess === false) {
-        this.$message.error(`获取关注信息失败，${res.message}!`)
-      } else {
-        res = res.shopDO
-        let isHas = false
-        // this.shopList.forEach((item, index) => {
-        //   if (item.title === res.title) {
-        //     isHas = true
-        //     this.currentIndex = index
-        //   }
-        // })
-        if (!isHas) {
-          let item = {
-            avatar: res.pictureUrl,
-            title: res.title,
-            type: 1,
-            time: '',
-            userId: res.userId,
-            id: new Date().getTime()
+      // let res = { shopDO: { title: '构美官方直播', pictureUrl: '//img.alicdn.com/imgextra///img.alicdn.com/imgextra/i4/1950250590/TB2qcbxdbmI.eBjy1zjXXaq5VXa_!!1950250590-0-beehive-scenes.jpg', shopId: 1950250590, userId: 1950250590, isTmall: false } }
+      getUserInfo(params).then(res => {
+        console.log(res)
+        if (res.isSuccess === false) {
+          this.$message.error(`获取关注信息失败，${res.message}!`)
+        } else {
+          res = res.shopDO
+          let isHas = false
+          // this.shopList.forEach((item, index) => {
+          //   if (item.title === res.title) {
+          //     isHas = true
+          //     this.currentIndex = index
+          //   }
+          // })
+          if (!isHas) {
+            let item = {
+              avatar: res.pictureUrl,
+              title: res.title,
+              type: 1,
+              time: '',
+              userId: res.userId,
+              id: new Date().getTime()
+            }
+            this.shopList.push(item)
+            this.currentIndex = this.shopList.length - 1
+            localStorage.shopList = JSON.stringify(this.shopList)
+            this.$nextTick(() => {
+              this.setCurrentIndex(item)
+            })
           }
-          this.shopList.push(item)
-          this.currentIndex = this.shopList.length - 1
-          localStorage.shopList = JSON.stringify(this.shopList)
-          this.$nextTick(() => {
-            this.setCurrentIndex(item)
-          })
         }
-      }
-      //   })
+      })
     },
     // 验证能否发送
     addMaterial(index) {
@@ -212,7 +212,7 @@ export default {
         draft: encodeURIComponent(JSON.stringify(draft))
       }
       console.log(params)
-      pushFocus(params).then(res => {
+      commonPush(params).then(res => {
         if (res.success) {
           this.$message({
             message: '发送关注卡片成功',
@@ -291,13 +291,7 @@ export default {
       width: 100px;
     }
   }
-  .search-box {
-    background: #f5f5f5;
-    padding: 10px;
-    box-shadow: rgb(220, 216, 216) 0px 0px 10px;
-    border: 1px solid rgb(227, 227, 227);
-  }
-  .shop-list-wrapper{
+  .shop-list-wrapper {
     margin-top: 10px;
     background: #f5f5f5;
     box-shadow: rgb(220, 216, 216) 0px 0px 10px;

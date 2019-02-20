@@ -9,8 +9,22 @@ export function addMaterial(data) {
   data._tb_token_ = getToken()
   return api.post('/ajax/video/material/addMaterial.do', data)
 }
-// 推关注 推公告
-export function pushFocus(data) {
+// // 推关注 推公告
+// export function pushFocus(data) {
+//   data._tb_token_ = getToken()
+//   return api.post('/live/action.do?api=publish_content_feed', data)
+// }
+// 公共推送
+export function commonPush(data) {
   data._tb_token_ = getToken()
   return api.post('/live/action.do?api=publish_content_feed', data)
+}
+// 获取商品信息
+export function liveAction(data) {
+  let params = '?'
+  for (let key in data) {
+    params += `${key}=${data[key]}&`
+  }
+  params = params.substr(0, params.length - 1)
+  return api.post(`/live/action.do${params}`, {})
 }
