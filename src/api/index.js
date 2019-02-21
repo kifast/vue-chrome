@@ -32,9 +32,10 @@ export function liveAction(data) {
 // 获取上架的商品列表
 export function getUpGoodsList(data) {
   let options = {
-    param: 'callback',
-    prefix: 'mtopjsonp1'
+    // param: 'callback',
+    // prefix: 'mtopjsonp1'
   }
+  data._tb_token_ = getToken()
   let url = 'https://h5api.m.taobao.com/h5/mtop.mediaplatform.video.livedetail.itemlist.withpagination/2.0/'
-  return jsonp(url, data, options)
+  return api.post(url, data)
 }

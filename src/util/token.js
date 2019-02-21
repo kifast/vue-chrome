@@ -15,5 +15,5 @@ export function getUserId() {
 
 const _m_h5_tk = '_m_h5_tk'
 export function getMH5Token() {
-  return Cookies.get(_m_h5_tk) ? Cookies.get(_m_h5_tk).join('_')[0] : ''
+  return Cookies.get(_m_h5_tk) ? Cookies.get(_m_h5_tk).split('_')[0] : ''
 }
