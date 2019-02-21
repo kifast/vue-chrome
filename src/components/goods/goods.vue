@@ -43,7 +43,7 @@
           <el-button type="primary" :plain="currentIndex!==-1" :size="currentIndex===-1?'':'small'" @click="addNewGoods">{{allGoodsList.length+1}}</el-button>
         </div>
         <div class="goods-item">
-          <el-button type="primary" @click="addNewGoods">批量添加宝贝</el-button>
+          <el-button type="primary" @click="dialogVisible=true">批量添加宝贝</el-button>
         </div>
       </div>
     </div>
@@ -52,6 +52,20 @@
       <el-button size="mini">前移</el-button>
       <el-button size="mini">后移</el-button>
     </div>
+    <el-dialog title="批量导入宝贝" :visible.sync="dialogVisible" width="700px">
+      <el-steps :active="dialogActive" finish-status="success" simple style="margin-top: 20px">
+        <el-step title="输入宝贝链接" ></el-step>
+        <el-step title="选择导入宝贝" ></el-step>
+        <el-step title="导入宝贝信息" ></el-step>
+      </el-steps>
+      <el-input type="textarea" v-model="dialogText" :rows="10" style="margin-top: 10px;" placeholder="请输入以换行分隔的宝贝链接
+点击下一步预览和编辑宝贝信息"></el-input>
+      <div class="flex" style="margin-top: 10px;">
+        <span style="flex: 1;"></span>
+        <el-button type="success" size="mini">上一步</el-button>
+        <el-button type="success" size="mini" @click="nextStep">下一步</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -71,7 +85,11 @@ export default {
       upGoodsList: [],
       liveId: urlParse().id || 219685085515,
       creatorId: getUserId() || 1950250590,
-      mH5Token: getMH5Token() || '9b22671251d623a524b9087970819c20'
+      mH5Token: getMH5Token() || '9b22671251d623a524b9087970819c20',
+      dialogVisible: false,
+      // 批量导入步骤
+      dialogActive: 0,
+      dialogText: ''
     }
   },
   computed: {
@@ -99,7 +117,7 @@ export default {
   methods: {
     // 查询商品
     addGoods(url) {
-      if (url === '') {
+      if (url === '' || (url.indexOf('taobao') === -1 && url.indexOf('tmall') === -1)) {
         this.$message.error('宝贝链接有误')
         return
       }
@@ -232,9 +250,11 @@ export default {
       commonPush(params).then(res => {
         console.log(res)
         if (res.success) {
-          currentGood.isShelves = true
+          let realIndex = this.currentIndex - this.upGoodsList.length
+          this.goodsList.splice(realIndex, 1)
+          this.saveGoodsList()
+          this.getUpGoods()
         }
-        this.saveGoodsList()
       })
     },
     // 删除商品
@@ -456,6 +476,24 @@ export default {
           this.$message.error('弹宝贝失败，' + res.msgInfo)
         }
       })
+    },
+    // 点击上一步
+    prevStep() {
+      if (this.dialogActive > 0) {
+        this.dialogActive --
+      }
+    },
+    // 点击下一步
+    nextStep() {
+      if (this.dialogActive === 0) {
+        let arr = this.dialogText.split('\n')
+        arr.forEach(url => {
+          this.addGoods(url)
+        })
+      }
+      if (this.dialogActive < 3) {
+        this.dialogActive ++
+      }
     }
   },
   components: {}
@@ -501,12 +539,17 @@ export default {
       margin: 5px 5px;
       display: inline-block;
       position: relative;
-      .el-icon-circle-check{
-        position: absolute; top: 2px; left: 2px;
+      .el-icon-circle-check {
+        position: absolute;
+        top: 2px;
+        left: 2px;
         color: #fc6868;
         font-size: 8px;
       }
     }
+  }
+  .el-step.is-simple .el-step__title{
+    font-size: 14px;
   }
 }
 </style>
