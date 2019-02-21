@@ -46,8 +46,8 @@
 <script>
 import { liveAction, commonPush, getUpGoodsList } from '@/api'
 import { baseImgUrl } from '@/util/config'
-import { urlParse } from '@/util/tools'
-import { getUserId, getToken } from '@/util/token'
+import { urlParse, saveStorage, loadStorage } from '@/util/tools'
+import { getUserId, getMH5Token } from '@/util/token'
 import setPass from '@/util/pass'
 export default {
   name: 'App',
@@ -56,7 +56,9 @@ export default {
       goodsUrl: '',
       currentIndex: -1,
       goodsList: [],
-      liveId: urlParse().id
+      liveId: urlParse().id || 219685085515,
+      creatorId: getUserId() || 1950250590,
+      mH5Token: getMH5Token() || 'edbffad6595b5cad86dcc0f9edc430df'
     }
   },
   computed: {
@@ -69,8 +71,9 @@ export default {
     }
   },
   created() {
-    if (localStorage.goodsList) {
-      this.goodsList = JSON.parse(localStorage.goodsList)
+    let key = 'goodsList_' + this.liveId
+    if (loadStorage(key)) {
+      this.goodsList = JSON.parse(loadStorage(key))
       this.resetGoodsList()
     }
     this.getUpGoods()
@@ -208,13 +211,17 @@ export default {
       })
     },
     saveGoodsList() {
-      localStorage.goodsList = JSON.stringify(this.goodsList)
+      let key = 'goodList_' + this.liveId
+      saveStorage(key, this.goodsList)
     },
     getUpGoods() {
       let t = new Date().getTime()
       let appKey = '12574478'
-      let data = JSON.stringify({ liveId: this.liveId, creatorId: getUserId(), n: 20, groupNum: 0 })
-      let key = getToken() + '&' + t + '&' + appKey + '&' + data
+
+      // let nData = '{"pageCode":"mainIndex","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36","params":"{\"url\":\"https://h5.m.taobao.com/\",\"referrer\":\"https://liveplatform.taobao.com/live/live_detail.htm?id=219685085515&openHlvPush=true\",\"oneId\":null,\"fid\":\"dqYCjwrIF0A\"}'
+      let data = JSON.stringify({ liveId: this.liveId, creatorId: this.creatorId, n: 20, groupNum: 0 })
+      let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
+      console.log(key)
       let sign = setPass(key)
       let params = {
         jsv: '2.4.0',
@@ -232,6 +239,26 @@ export default {
       console.log(params)
       getUpGoodsList(params).then(res => {
         console.log(res)
+        if (res.data && res.data.itemList) {
+          this.itemList = res.data.itemList
+          console.log(this.itemList)
+          this.itemList.forEach((item) => {
+            let goods = item.goodsList[0]
+            let { itemTitle, itemPrice, itemId, itemPic, itemUrl } = goods
+            let goodsItem = {
+              itemTitle,
+              itemPrice,
+              itemId,
+              url: itemUrl,
+              imgUrl: itemPic,
+              // 优惠券链接
+              link: '',
+              isShelves: true,
+              current: true
+            }
+            this.goodsList.unshift(goodsItem)
+          })
+        }
       })
     }
   },

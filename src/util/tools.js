@@ -14,3 +14,19 @@ export function urlParse() {
   }
   return obj
 }
+
+export function saveStorage(key, data) {
+  if (typeof data === 'object') {
+    data = JSON.stringify(data)
+  }
+  localStorage.setItem(key, data)
+}
+
+export function loadStorage(key) {
+  let data = localStorage.getItem(key)
+  try {
+    data = JSON.parse(data)
+  } catch (error) {
+  }
+  return data
+}
