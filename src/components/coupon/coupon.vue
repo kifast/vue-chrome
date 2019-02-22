@@ -44,6 +44,7 @@
 <script>
 import { commonPush, getCoupon } from '@/api'
 import { urlParse } from '@/util/tools'
+import { setPass } from '@/util/pass'
 export default {
   name: 'Notice',
   data() {
@@ -68,9 +69,64 @@ export default {
     // }
   },
   methods: {
+    urlParse(url) {
+      var obj = {}
+      var reg = /[?&][^?&]+=[^?&#/]+/g
+      var arr = url.match(reg)
+      // ['?id=12345', '&a=b']
+      if (arr) {
+        arr.forEach(function(item) {
+          var tempArr = item.substring(1).split('=')
+          var key = decodeURIComponent(tempArr[0])
+          var val = decodeURIComponent(tempArr[1])
+          obj[key] = val
+        })
+      }
+      return obj
+    },
     // 获取优惠券信息
     getCoupon() {
       let url = this.noticeContent
+      let appKey = '12574478'
+      let t = new Date().getTime()
+      let sellerId = this.urlParse(url).seller_id
+      let uuid = this.urlParse(url).activity_id
+      let data = JSON.stringify({ uuid: uuid, sellerId: sellerId, queryShop: true, originalSellerId: '', marketPlace: '' })
+      let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
+      let sign = setPass(key)
+      let params = {
+        jsv: '2.3.22',
+        appKey,
+        t,
+        sign,
+        api: 'mtop.taobao.couponMtopReadService.findShopBonusActivitys',
+        v: '3.0',
+        AntiCreep: true,
+        AntiFlood: true,
+        ecode: 1,
+        H5Request: true,
+        data,
+        _: new Date().getTime()
+      }
+      commonPush(params).then(res => {
+        console.log(res)
+      })
+      //         jsv: '2.3.22'
+      // appKey: '12574478'
+      // // (empty)
+      // t: 1550831859456
+      // sign: 57da9b7b9611ba767d4cb2d729df6ed9
+      // api: mtop.taobao.couponMtopReadService.findShopBonusActivitys
+      // v: 3.0
+      // AntiCreep: true
+      // AntiFlood: true
+      // ecode: 1
+      // H5Request: true
+      // type: jsonp
+      // dataType: jsonp
+      // callback: mtopjsonp2
+      // data: {"uuid":"9bc8ae9ba3684e7fa0714d10527ed643","sellerId":"10288234451","queryShop":true,"originalSellerId":"","marketPlace":""}
+      // _: 1550831655744
       getCoupon(url).then(res => {
         console.log(res)
       })

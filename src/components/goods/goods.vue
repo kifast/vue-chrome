@@ -51,7 +51,7 @@
         </div>
       </div>
     </div>
-    <div style="margin-top: 10px; font-size: 14px; color: #666; line-height: 1.5;">
+    <div style="margin-top: 10px; font-size: 13px; color: #666; line-height: 1.5;">
       <span style="font-size: 16px;">使用帮助：</span><br>
       在宝贝列表中，已上线宝贝编号显示为红色、待上线宝贝显示为绿色。选中蓝色按钮可添加新的待上线宝贝。<br>
       已上线（红色）宝贝不可删除、不可移动位置。待上线宝贝（绿色）可删除、可移动位置。<br>
