@@ -37,7 +37,8 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)" v-if="!scope.row.isSending">发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
         </el-table-column>
@@ -75,13 +76,17 @@ export default {
   methods: {
     // 添加到公告列表
     addNotice() {
+      if (this.noticeContent === '') {
+        return
+      }
       let item = {
         content: this.noticeContent,
         type: this.noticeType,
         time: this.noticeTime,
         before: '',
         after: '',
-        id: new Date().getTime()
+        id: new Date().getTime(),
+        isSending: false
       }
       this.noticeList.push(item)
       this.currentIndex = this.noticeList.length - 1
@@ -105,25 +110,33 @@ export default {
         _input_charset: 'utf-8',
         draft: encodeURIComponent(JSON.stringify(draft))
       }
-      commonPush(params).then(res => {
+      let res = {
+        success: true
+      }
+      // commonPush(params).then(res => {
         if (res.success) {
           this.$message({
             message: '发送公告成功',
             type: 'success'
           })
           if (row.type === 2) {
+            this.noticeList[this.currentIndex].isSending = true
             this._runAutoSend(row)
           }
         } else {
           this.$message.error('发送公告失败')
         }
-      })
+      // })
     },
     // 自动发送
     _runAutoSend(row) {
       this.sendTimer = setTimeout(() => {
         this.sendNotice(row)
       }, row.time * 1000)
+    },
+    stopSending(row) {
+      clearTimeout(this.sendTimer)
+      row.isSending = false
     },
     // 删除item
     delItem(index) {

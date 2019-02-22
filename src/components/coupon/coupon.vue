@@ -3,7 +3,7 @@
     <div class="search-box">
       <el-input placeholder="请输入优惠券链接" v-model="noticeContent" class="input-with-select">
         <!-- <i class="el-icon-warning" slot="prepend"></i> -->
-        <el-button slot="append" icon="el-icon-search" @click.native="addNotice"></el-button>
+        <el-button slot="append" icon="el-icon-search" @click.native="getCoupon"></el-button>
       </el-input>
     </div>
     <div class="notice-list-wrapper">
@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { commonPush } from '@/api'
+import { commonPush, getCoupon } from '@/api'
 import { urlParse } from '@/util/tools'
 export default {
   name: 'Notice',
@@ -68,21 +68,11 @@ export default {
     // }
   },
   methods: {
-    // 添加到公告列表
-    addNotice() {
-      let item = {
-        content: this.noticeContent,
-        type: this.noticeType,
-        time: this.noticeTime,
-        before: '',
-        after: '',
-        id: new Date().getTime()
-      }
-      this.noticeList.push(item)
-      this.currentIndex = this.noticeList.length - 1
-      localStorage.noticeList = JSON.stringify(this.noticeList)
-      this.$nextTick(() => {
-        this.setCurrentIndex(item)
+    // 获取优惠券信息
+    getCoupon() {
+      let url = this.noticeContent
+      getCoupon(url).then(res => {
+        console.log(res)
       })
     },
     // 发送公告

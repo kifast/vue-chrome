@@ -39,3 +39,7 @@ export function getUpGoodsList(data) {
   let url = 'https://h5api.m.taobao.com/h5/mtop.mediaplatform.video.livedetail.itemlist.withpagination/2.0/'
   return api.post(url, data)
 }
+// 获取上架的商品列表
+export function getCoupon(url, data) {
+  return api.post(url, data)
+}

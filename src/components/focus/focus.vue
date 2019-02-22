@@ -53,7 +53,8 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)">发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="stopSending" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
         </el-table-column>
@@ -129,6 +130,7 @@ export default {
               avatar: res.pictureUrl,
               title: res.title,
               type: 1,
+              isSending: false,
               time: '',
               userId: res.userId,
               id: new Date().getTime()
@@ -161,29 +163,29 @@ export default {
         data: JSON.stringify(data)
       }
       console.log(params)
-      //   let res = {
-      //     content: {
-      //       materialName: 'followcard_296519650',
-      //       material: {
-      //         bizId: '1950250590',
-      //         bizType: 7,
-      //         componentName: 'followcard',
-      //         componentOwnerId: 0,
-      //         data: { extendParam: "{'feed_id': 219525889275}", type: 'followcard', userId: 1950250590 },
-      //         gmtCreate: '2018-09-03 17:27:59',
-      //         gmtModified: '2019-02-18 16:47:33',
-      //         id: 296519650,
-      //         name: 'followcard_296519650',
-      //         source: 'followcard',
-      //         status: 1,
-      //         title: '关注主播',
-      //         userId: 1950250590,
-      //         userName: '陈先生_1014'
-      //       }
-      //     },
-      //     message: 'success',
-      //     isSuccess: true
-      //   }
+      // let res = {
+      //   content: {
+      //     materialName: 'followcard_296519650',
+      //     material: {
+      //       bizId: '1950250590',
+      //       bizType: 7,
+      //       componentName: 'followcard',
+      //       componentOwnerId: 0,
+      //       data: { extendParam: "{'feed_id': 219525889275}", type: 'followcard', userId: 1950250590 },
+      //       gmtCreate: '2018-09-03 17:27:59',
+      //       gmtModified: '2019-02-18 16:47:33',
+      //       id: 296519650,
+      //       name: 'followcard_296519650',
+      //       source: 'followcard',
+      //       status: 1,
+      //       title: '关注主播',
+      //       userId: 1950250590,
+      //       userName: '陈先生_1014'
+      //     }
+      //   },
+      //   message: 'success',
+      //   isSuccess: true
+      // }
       addMaterial(params).then(res => {
         if (res.isSuccess) {
           this.materialName = res.content.materialName
@@ -211,13 +213,18 @@ export default {
         _input_charset: 'utf-8',
         draft: encodeURIComponent(JSON.stringify(draft))
       }
-      console.log(params)
+      // let res = {
+      //   success: true
+      // }
       commonPush(params).then(res => {
         if (res.success) {
           this.$message({
             message: '发送关注卡片成功',
             type: 'success'
           })
+          if (this.currentShop.type === 2) {
+            this.currentShop.isSending = true
+          }
         } else {
           this.$message.error('发送关注卡片失败')
         }
@@ -233,6 +240,11 @@ export default {
       this.sendTimer = setTimeout(() => {
         this.addMaterial(this.currentIndex)
       }, this.currentShop.time * 1000)
+    },
+    // 停止发送
+    stopSending() {
+      clearTimeout(this.sendTimer)
+      this.shopList[this.currentIndex].isSending = false
     },
     // 删除item
     delItem(index) {

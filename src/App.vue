@@ -2,6 +2,9 @@
   <div id="app">
     <div id="goumee_board" class="interactive-list">
       <el-tabs type="border-card">
+        <el-tab-pane label="发优惠券">
+          <coupon></coupon>
+        </el-tab-pane>
         <el-tab-pane label="宝贝管理">
            <goods></goods>
         </el-tab-pane>
@@ -10,9 +13,6 @@
         </el-tab-pane>
         <el-tab-pane label="公告发送">
           <notice></notice>
-        </el-tab-pane>
-        <el-tab-pane label="发送优惠券">
-          <coupon></coupon>
         </el-tab-pane>
       </el-tabs>
     </div>
