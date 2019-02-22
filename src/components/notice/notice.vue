@@ -2,7 +2,7 @@
   <div class="notice-wrapper">
     <div class="search-box">
       <el-input placeholder="请输入公告内容" v-model="noticeContent" class="input-with-select">
-        <i class="el-icon-warning" slot="prepend"></i>
+        <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="addNotice"></el-button>
       </el-input>
       <div style="margin-top: 10px;">
@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import {commonPush} from '@/api'
+import { commonPush } from '@/api'
 import { urlParse } from '@/util/tools'
 export default {
   name: 'Notice',
@@ -127,12 +127,20 @@ export default {
     },
     // 删除item
     delItem(index) {
-      this.noticeList.splice(index, 1)
-      if (this.noticeList.length > 0) {
-        this.currentIndex = 0
-      } else {
-        this.currentIndex = -1
-      }
+      this.$confirm('此操作将删除该公告, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.noticeList.splice(index, 1)
+          if (this.noticeList.length > 0) {
+            this.currentIndex = 0
+          } else {
+            this.currentIndex = -1
+          }
+        })
+        .catch(() => {})
     },
     // 点击某一行
     setCurrentIndex(row) {

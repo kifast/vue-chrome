@@ -2,7 +2,7 @@
   <div class="focus-wrapper">
     <div class="search-box">
       <el-input placeholder="请输入店铺名称/达人昵称" v-model="starName" class="input-with-select">
-        <i class="el-icon-warning" slot="prepend"></i>
+        <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="searchShop"></el-button>
       </el-input>
     </div>
@@ -236,12 +236,20 @@ export default {
     },
     // 删除item
     delItem(index) {
-      this.shopList.splice(index, 1)
-      if (this.shopList.length > 0) {
-        this.currentIndex = 0
-      } else {
-        this.currentIndex = -1
-      }
+      this.$confirm('此操作将删除该卡片, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.shopList.splice(index, 1)
+          if (this.shopList.length > 0) {
+            this.currentIndex = 0
+          } else {
+            this.currentIndex = -1
+          }
+        })
+        .catch(() => {})
     },
     // 点击某一行
     setCurrentIndex(row) {

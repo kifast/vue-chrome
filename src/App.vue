@@ -11,7 +11,9 @@
         <el-tab-pane label="公告发送">
           <notice></notice>
         </el-tab-pane>
-        <el-tab-pane label="发送优惠券">发送优惠券</el-tab-pane>
+        <el-tab-pane label="发送优惠券">
+          <coupon></coupon>
+        </el-tab-pane>
       </el-tabs>
     </div>
   </div>
@@ -21,6 +23,7 @@
 import Focus from './components/focus/focus'
 import Notice from './components/notice/notice'
 import Goods from './components/goods/goods'
+import Coupon from './components/coupon/coupon'
 export default {
   name: 'App',
   data() {
@@ -31,7 +34,8 @@ export default {
   components: {
     Focus,
     Notice,
-    Goods
+    Goods,
+    Coupon
   }
 }
 </script>
@@ -54,5 +58,8 @@ export default {
   li {
     display: inline-block;
   }
+}
+.el-table__expanded-cell{
+  // background: #f5f5f5;
 }
 </style>

@@ -2,7 +2,7 @@
   <div class="goods-wrapper">
     <div class="search-box">
       <el-input placeholder="请输入淘宝商品链接" v-model="goodsUrl" class="input-with-select">
-        <i class="el-icon-warning" slot="prepend"></i>
+        <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="addGoods(goodsUrl)"></el-button>
       </el-input>
       <div class="good-detail" v-if="currentGood">
@@ -27,6 +27,9 @@
           </div>
           <div class="flex" style="margin-top: 10px;" v-if="!currentGood.isShelves">
             <span style="flex: 1;"></span>
+            <el-button size="mini" @click="refreshGoods">刷新</el-button>
+            <el-button size="mini" :disabled="realIndex===0" @click="prevMove">前移</el-button>
+            <el-button size="mini" :disabled="realIndex===goodsList.length-1" @click="nextMove">后移</el-button>
             <el-button type="success" size="small" @click="goodsOnShelvesConfirm">上架</el-button>
             <el-button type="danger" size="small" @click="delGoods">删除</el-button>
           </div>
@@ -36,34 +39,61 @@
     <div class="search-box" style="margin-top: 10px;">
       <div class="goods-list">
         <div class="goods-item" v-for="(item, index) in allGoodsList" :key="index">
-          <el-button :type="item.isShelves?'danger':'success'" :plain="!item.current" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;" @click="selectGoods(index)">{{index+1}}</el-button>
+          <el-button :type="item.isShelves?'danger':'success'" :plain="!(item.current || currentIndex===index)" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;"
+            @click="selectGoods(index)">{{index+1}}</el-button>
           <i v-if="item.right" class="el-icon-circle-check"></i>
         </div>
         <div class="goods-item">
           <el-button type="primary" :plain="currentIndex!==-1" :size="currentIndex===-1?'':'small'" @click="addNewGoods">{{allGoodsList.length+1}}</el-button>
         </div>
         <div class="goods-item">
-          <el-button type="primary" @click="dialogVisible=true">批量添加宝贝</el-button>
+          <el-button type="primary" @click="showBatchAdd">批量添加宝贝</el-button>
         </div>
       </div>
     </div>
-    <div style="margin-top: 10px;">
-      <el-button size="mini">刷新</el-button>
-      <el-button size="mini">前移</el-button>
-      <el-button size="mini">后移</el-button>
+    <div style="margin-top: 10px; font-size: 14px; color: #666; line-height: 1.5;">
+      <span style="font-size: 16px;">使用帮助：</span><br>
+      在宝贝列表中，已上线宝贝编号显示为红色、待上线宝贝显示为绿色。选中蓝色按钮可添加新的待上线宝贝。<br>
+      已上线（红色）宝贝不可删除、不可移动位置。待上线宝贝（绿色）可删除、可移动位置。<br>
     </div>
     <el-dialog title="批量导入宝贝" :visible.sync="dialogVisible" width="700px">
       <el-steps :active="dialogActive" finish-status="success" simple style="margin-top: 20px">
-        <el-step title="输入宝贝链接" ></el-step>
-        <el-step title="选择导入宝贝" ></el-step>
-        <el-step title="导入宝贝信息" ></el-step>
+        <el-step title="输入宝贝链接"></el-step>
+        <el-step title="选择导入宝贝"></el-step>
+        <el-step title="导入宝贝信息"></el-step>
       </el-steps>
-      <el-input type="textarea" v-model="dialogText" :rows="10" style="margin-top: 10px;" placeholder="请输入以换行分隔的宝贝链接
+      <el-input v-if="dialogActive===0" type="textarea" v-model="dialogText" :rows="10" style="margin-top: 10px;" placeholder="请输入以换行分隔的宝贝链接
 点击下一步预览和编辑宝贝信息"></el-input>
+      <div v-if="dialogActive===1" style="overflow-y: auto;overflow-x: hidden; max-height: 600px;">
+        <el-table ref="multipleTable" :data="batchGoodsList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="55">
+          </el-table-column>
+          <el-table-column label="宝贝信息">
+            <template slot-scope="scope">
+              <div class="flex">
+                <img style="width: 50px; height: 50px;" :src="scope.row.imgUrl + '_160x160.jpg_.webp'" alt="">
+                <div style="flex: 1; margin-left: 10px;">
+                  <div>
+                    {{scope.row.itemTitle}}
+                  </div>
+                  <div style="color: rgb(255, 68, 0);">
+                    ￥{{scope.row.itemPrice}}
+                  </div>
+                  <div>
+                    <a :href="scope.row.url" class="dialog-link">{{scope.row.url}}</a>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="margin-top: 10px;">提示：不能添加<b style="color: #f00;">已上架、已在列表中、链接错误</b>的宝贝(如有的话会被排除)</div>
+      </div>
       <div class="flex" style="margin-top: 10px;">
         <span style="flex: 1;"></span>
-        <el-button type="success" size="mini">上一步</el-button>
-        <el-button type="success" size="mini" @click="nextStep">下一步</el-button>
+        <el-button type="success" size="mini" @click="prevStep" :disabled="dialogActive===0">上一步</el-button>
+        <el-button type="success" size="mini" @click="nextStep" v-if="dialogActive===0">下一步</el-button>
+        <el-button type="primary" size="mini" @click="nextStep" v-if="dialogActive===1" :disabled="dialogActive===1&&batchSelection.length===0">导入宝贝</el-button>
       </div>
     </el-dialog>
   </div>
@@ -89,7 +119,9 @@ export default {
       dialogVisible: false,
       // 批量导入步骤
       dialogActive: 0,
-      dialogText: ''
+      dialogText: '',
+      batchGoodsList: [],
+      batchSelection: []
     }
   },
   computed: {
@@ -99,6 +131,10 @@ export default {
         ret = this.allGoodsList[this.currentIndex]
       }
       return ret
+    },
+    // goodsList的index
+    realIndex() {
+      return this.currentIndex - this.upGoodsList.length
     },
     // 所有上架和未上架的宝贝
     allGoodsList() {
@@ -127,7 +163,7 @@ export default {
       //   }
       let params = {
         api: 'item_getItem',
-        url: encodeURI(url),
+        url: encodeURIComponent(url),
         _: new Date().getTime()
       }
       // let res = {
@@ -179,7 +215,7 @@ export default {
             // 图片地址
             imgUrl: baseImgUrl + imgUrl,
             // 商品链接
-            url: url,
+            url: `${url.split('?')[0]}?id=${itemId}`,
             // 利益点
             right: '',
             // 优惠券链接
@@ -197,6 +233,84 @@ export default {
           this.$message.error(res.msgInfo)
         }
       })
+    },
+    // 批量添加
+    batchAddGoods(url) {
+      if (url === '' || (url.indexOf('taobao') === -1 && url.indexOf('tmall') === -1)) {
+        return
+      }
+      let params = {
+        api: 'item_getItem',
+        url: encodeURIComponent(url),
+        _: new Date().getTime()
+      }
+      // let res = {
+      //   headers: {},
+      //   model: {
+      //     imgUrl: 'i4/4205584633/O1CN01YKLBvt1k5xTDWcydu_!!4205584633.jpg',
+      //     extendVal: { useableItem: 'true', isNew: 'false' },
+      //     imgList: [
+      //       '//img.alicdn.com/bao/uploaded/i4/4205584633/O1CN01YKLBvt1k5xTDWcydu_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i3/4205584633/O1CN01ozoWva1k5xRuTTcVQ_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i4/4205584633/O1CN01LO2L5d1k5xRtLCaCQ_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i1/4205584633/O1CN011k5xRd0JLoXObW7_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i2/4205584633/O1CN01KCiwxv1k5xRnPJG3T_!!4205584633.jpg'
+      //     ],
+      //     height: 0,
+      //     is11: false,
+      //     useable: true,
+      //     width: 0,
+      //     from: 'taobao',
+      //     itemPrice: 156.0,
+      //     itemId: 58044095469732,
+      //     taokprice: '0.00',
+      //     itemTitle: '光希 玻尿酸补水初见面膜 补水保湿修护提亮肤色清洁女正品2'
+      //   },
+      //   httpStatusCode: 200,
+      //   msgCode: 'SUCCESS',
+      //   msgInfo: '成功',
+      //   success: true
+      // }
+      liveAction(params).then(res => {
+        if (res.success) {
+          let model = res.model
+          let { itemTitle, itemPrice, itemId, imgUrl } = model
+          let count = 0
+          this.allGoodsList.forEach(item => {
+            if (item.itemId == itemId) {
+              count++
+            }
+          })
+          this.batchGoodsList.forEach(item => {
+            if (item.itemId === itemId) {
+              count++
+            }
+          })
+          if (count > 0) {
+            // this.$message.error('宝贝重复添加')
+            return
+          }
+          let item = {
+            itemTitle,
+            itemPrice,
+            itemId,
+            // 图片地址
+            imgUrl: baseImgUrl + imgUrl,
+            // 商品链接
+            url: `${url.split('?')[0]}?id=${itemId}`,
+            // 利益点
+            right: '',
+            // 优惠券链接
+            link: '',
+            isShelves: false,
+            current: false
+          }
+          this.batchGoodsList.push(item)
+        }
+      })
+    },
+    handleSelectionChange(val) {
+      this.batchSelection = val
     },
     // 上架二次确认框
     goodsOnShelvesConfirm() {
@@ -250,8 +364,7 @@ export default {
       commonPush(params).then(res => {
         console.log(res)
         if (res.success) {
-          let realIndex = this.currentIndex - this.upGoodsList.length
-          this.goodsList.splice(realIndex, 1)
+          this.goodsList.splice(this.realIndex, 1)
           this.saveGoodsList()
           this.getUpGoods()
         }
@@ -265,8 +378,7 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          let realIndex = this.currentIndex - this.upGoodsList.length
-          this.goodsList.splice(realIndex, 1)
+          this.goodsList.splice(this.realIndex, 1)
           this.saveGoodsList()
           // this.$message({
           //   type: 'success',
@@ -480,20 +592,112 @@ export default {
     // 点击上一步
     prevStep() {
       if (this.dialogActive > 0) {
-        this.dialogActive --
+        this.dialogActive--
       }
     },
     // 点击下一步
     nextStep() {
       if (this.dialogActive === 0) {
+        this.batchGoodsList = []
         let arr = this.dialogText.split('\n')
         arr.forEach(url => {
-          this.addGoods(url)
+          this.batchAddGoods(url)
         })
       }
-      if (this.dialogActive < 3) {
-        this.dialogActive ++
+      if (this.dialogActive < 1) {
+        this.dialogActive++
+      } else {
+        if (this.batchSelection.length === 0) {
+          return
+        }
+        this.dialogVisible = false
+        this.goodsList = this.goodsList.concat(this.batchSelection)
+        this.saveGoodsList()
       }
+    },
+    // 前移
+    prevMove() {
+      if (this.realIndex > 0) {
+        let nowItem = this.goodsList[this.realIndex]
+        let prevItem = this.goodsList[this.realIndex - 1]
+        this.goodsList.splice(this.realIndex - 1, 1, nowItem)
+        this.goodsList.splice(this.realIndex, 1, prevItem)
+        this.currentIndex--
+      }
+    },
+    // 后移
+    nextMove() {
+      if (this.realIndex < this.goodsList.length - 1) {
+        let nowItem = this.goodsList[this.realIndex]
+        let newxItem = this.goodsList[this.realIndex + 1]
+        this.goodsList.splice(this.realIndex + 1, 1, nowItem)
+        this.goodsList.splice(this.realIndex, 1, newxItem)
+        this.currentIndex++
+      }
+    },
+    // 显示批量导入弹窗
+    showBatchAdd() {
+      this.dialogVisible = true
+      this.dialogText = ''
+      this.dialogActive = 0
+    },
+    // 刷新商品
+    refreshGoods() {
+      let url = this.currentGood.url
+      let params = {
+        api: 'item_getItem',
+        url: encodeURIComponent(url),
+        _: new Date().getTime()
+      }
+      // let res = {
+      //   headers: {},
+      //   model: {
+      //     imgUrl: 'i4/4205584633/O1CN01YKLBvt1k5xTDWcydu_!!4205584633.jpg',
+      //     extendVal: { useableItem: 'true', isNew: 'false' },
+      //     imgList: [
+      //       '//img.alicdn.com/bao/uploaded/i4/4205584633/O1CN01YKLBvt1k5xTDWcydu_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i3/4205584633/O1CN01ozoWva1k5xRuTTcVQ_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i4/4205584633/O1CN01LO2L5d1k5xRtLCaCQ_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i1/4205584633/O1CN011k5xRd0JLoXObW7_!!4205584633.jpg',
+      //       '//img.alicdn.com/bao/uploaded/i2/4205584633/O1CN01KCiwxv1k5xRnPJG3T_!!4205584633.jpg'
+      //     ],
+      //     height: 0,
+      //     is11: false,
+      //     useable: true,
+      //     width: 0,
+      //     from: 'taobao',
+      //     itemPrice: 156.0,
+      //     itemId: 5804409546973,
+      //     taokprice: '0.00',
+      //     itemTitle: '光希 玻尿酸补水初见面膜 补水保湿修护提亮肤色清洁女正品2'
+      //   },
+      //   httpStatusCode: 200,
+      //   msgCode: 'SUCCESS',
+      //   msgInfo: '成功',
+      //   success: true
+      // }
+      liveAction(params).then(res => {
+        if (res.success) {
+          let model = res.model
+          let { itemTitle, itemPrice, itemId, imgUrl } = model
+          let item = {
+            itemTitle,
+            itemPrice,
+            itemId,
+            // 图片地址
+            imgUrl: baseImgUrl + imgUrl,
+            // 商品链接
+            url: `${url.split('?')[0]}?id=${itemId}`,
+            // 利益点
+            right: '',
+            // 优惠券链接
+            link: '',
+            isShelves: false,
+            current: false
+          }
+          this.goodsList.splice(this.realIndex, 1, item)
+        }
+      })
     }
   },
   components: {}
@@ -548,8 +752,11 @@ export default {
       }
     }
   }
-  .el-step.is-simple .el-step__title{
+  .el-step.is-simple .el-step__title {
     font-size: 14px;
+  }
+  .dialog-link {
+    color: #0073bd;
   }
 }
 </style>
