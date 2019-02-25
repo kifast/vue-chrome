@@ -153,6 +153,7 @@ export default {
       this.shopList.forEach((item, shopIndex) => {
         if (index !== shopIndex) {
           item.type = 1
+          item.isSending = false
         }
       })
       this.currentIndex = index

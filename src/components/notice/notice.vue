@@ -31,13 +31,13 @@
         </el-table-column>
         <el-table-column prop="content" label="公告内容">
         </el-table-column>
-        <el-table-column prop="before" label="上次发送" width="80">
+        <!-- <el-table-column prop="before" label="上次发送" width="80">
         </el-table-column>
         <el-table-column prop="after" label="下次发送" width="80">
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
             <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
@@ -99,6 +99,10 @@ export default {
     },
     // 发送公告
     sendNotice(row) {
+      if (!row.content) {
+        this.$message.error('公告内容不能为空!')
+        return
+      }
       // {"parentId":"219528268702","feedId":"","interactiveName":"","feedType":707,"title":"好的"}
       let draft = {
         parentId: this.feedId,
@@ -112,10 +116,10 @@ export default {
         _input_charset: 'utf-8',
         draft: encodeURIComponent(JSON.stringify(draft))
       }
-      let res = {
-        success: true
-      }
-      // commonPush(params).then(res => {
+      // let res = {
+      //   success: true
+      // }
+      commonPush(params).then(res => {
         if (res.success) {
           this.$message({
             message: '发送公告成功',
@@ -128,7 +132,7 @@ export default {
         } else {
           this.$message.error('发送公告失败')
         }
-      // })
+      })
     },
     // 自动发送
     _runAutoSend(row) {
