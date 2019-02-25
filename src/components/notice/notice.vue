@@ -65,7 +65,8 @@ export default {
       liveId: urlParse().id,
       getRowKeys(row) {
         return row.id
-      }
+      },
+      sendTimers: {}
     }
   },
   created() {
@@ -126,7 +127,7 @@ export default {
             type: 'success'
           })
           if (row.type === 2) {
-            this.noticeList[this.currentIndex].isSending = true
+            row.isSending = true
             this._runAutoSend(row)
           }
         } else {
@@ -136,12 +137,13 @@ export default {
     },
     // 自动发送
     _runAutoSend(row) {
-      this.sendTimer = setTimeout(() => {
+      clearTimeout(this.sendTimers[row.id])
+      this.sendTimers[row.id] = setTimeout(() => {
         this.sendNotice(row)
       }, row.time * 1000)
     },
     stopSending(row) {
-      clearTimeout(this.sendTimer)
+      clearTimeout(this.sendTimers[row.id])
       row.isSending = false
     },
     // 删除item
@@ -187,7 +189,15 @@ export default {
       saveStorage(key, this.noticeList)
     }
   },
-  components: {}
+  components: {},
+  watch: {
+    'noticeList': {
+      handler(val) {
+        this.saveNoticeList()
+      },
+      deep: true
+    }
+  }
 }
 </script>
 
