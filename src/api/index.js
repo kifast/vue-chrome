@@ -40,6 +40,7 @@ export function getUpGoodsList(data) {
   return api.post(url, data)
 }
 // 获取上架的商品列表
-export function getCoupon(url, data) {
+export function getCoupon(data) {
+  let url = 'https://acs.m.taobao.com/h5/mtop.taobao.couponmtopreadservice.findshopbonusactivitys/3.0/'
   return api.post(url, data)
 }
