@@ -32,8 +32,8 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
-            <el-button size="mini" type="primary" @click.stop="stopSending" v-if="scope.row.isSending">停止发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.row)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
         </el-table-column>
@@ -60,7 +60,8 @@ export default {
       mH5Token: getMH5Token(),
       getRowKeys(row) {
         return row.id
-      }
+      },
+      sendTimers: {}
     }
   },
   created() {
@@ -78,8 +79,8 @@ export default {
       if (arr) {
         arr.forEach(function(item) {
           var tempArr = item.substring(1).split('=')
-          var key = decodeURIComponent(tempArr[0])
-          var val = decodeURIComponent(tempArr[1])
+          var key = tempArr[0]
+          var val = tempArr[1]
           obj[key] = val
         })
       }
@@ -165,9 +166,9 @@ export default {
       })
     },
     // 验证能否发送
-    addMaterial(index) {
-      this.currentIndex = index
-      let coupon = this.couponList[index]
+    addMaterial(coupon) {
+      // this.currentIndex = index
+      // let coupon = this.couponList[index]
       // data: {"bizType":2,"data":{"uuid":"9bc8ae9ba3684e7fa0714d10527ed643","supplierId":1028823445,"name":"专属优惠券","threshold":1,"amount":"1","type":"shopCoupon"},"title":"专属优惠券"}
       let data = {
         bizType: '2',
@@ -227,13 +228,14 @@ export default {
     },
     // 自动发送
     _runAutoSend(row) {
-      this.sendTimer = setTimeout(() => {
-        this.sendCoupon(row)
+      clearTimeout(this.sendTimers[row.id])
+      this.sendTimers[row.id] = setTimeout(() => {
+        this.addMaterial(row)
       }, row.time * 1000)
     },
-    stopSending() {
-      clearTimeout(this.sendTimer)
-      this.couponList[this.currentIndex].isSending = false
+    stopSending(row) {
+      clearTimeout(this.sendTimers[row.id])
+      row.isSending = false
     },
     // 删除item
     delItem(index) {
