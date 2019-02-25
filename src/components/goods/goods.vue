@@ -49,9 +49,8 @@
     </div>
     <div class="search-box" style="margin-top: 10px;">
       <div class="goods-list">
-        <div class="goods-item" v-for="(item, index) in allGoodsList" :key="index">
-          <el-button :type="item.isShelves?'danger':'success'" :plain="!(item.current || currentIndex===index)" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;"
-            @click="selectGoods(index)">{{index+1}}</el-button>
+        <div class="goods-item" v-for="(item, index) in allGoodsList" :key="index" @click="selectGoods(index)">
+          <el-button :type="item.isShelves?'danger':'success'" :plain="!(item.current || currentIndex===index)" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;">{{index+1}}</el-button>
           <i v-if="item.right" class="el-icon-circle-check"></i>
           <i v-if="item.coupon&&item.coupon.shopNick" class="el-icon-tickets"></i>
         </div>
@@ -408,7 +407,7 @@ export default {
       //   let res = { headers: {}, model: { publishTime: '15:12', itemUrl: '//item.taobao.com/item.htm?id=577224665084' }, httpStatusCode: 200, msgCode: 'SUCCESS', msgInfo: '成功', success: true }
       // let res = { headers: {}, model: { isDuplicate: 'true', publishTime: '16:08', itemUrl: '//item.taobao.com/item.htm?id=580440954697' }, httpStatusCode: 200, msgCode: 'SUCCESS', msgInfo: '成功', success: true }
       commonPush(params).then(res => {
-        console.log(res)
+        // console.log(res)
         if (res.success) {
           this.goodsList.splice(this.realIndex, 1)
           this.saveGoodsList()
@@ -556,7 +555,7 @@ export default {
         data,
         _: new Date().getTime()
       }
-      console.log(params)
+      // console.log(params)
       // let res = {
       //   api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',
       //   data: {
@@ -651,10 +650,9 @@ export default {
       //   v: '2.0'
       // }
       getUpGoodsList(params).then(res => {
-        console.log(res)
+        // console.log(res)
         if (res.data && res.data.itemList) {
           this.itemList = res.data.itemList
-          console.log(this.itemList)
           let list = []
           this.itemList.forEach(item => {
             let goods = item.goodsList[0]
@@ -851,7 +849,6 @@ export default {
       // let res = {"content":{"materialName":"coupon_486920792","material":{"bizId":"9bc8ae9ba3684e7fa0714d10527ed643","bizType":2,"componentName":"coupon","componentOwnerId":0,"data":{"activityId":2507592145,"amount":"30","applyCount":1278,"couponInstanceSource":20398001,"currentTime":1551066654806,"endTime":"2019.2.25","name":"中单小法","startTime":"2019.2.18","status":1,"supplierId":1028823445,"threshold":88,"totalCount":3000,"type":"shopCoupon","uuid":"9bc8ae9ba3684e7fa0714d10527ed643"},"gmtCreate":"2019-02-22 15:50:24","gmtModified":"2019-02-25 11:50:54","id":486920792,"name":"coupon_486920792","source":"coupon","status":1,"title":"专属优惠券","userId":1950250590,"userName":"陈先生_1014"}},"message":"success","isSuccess":true}
       addMaterial(params).then(res => {
         if (res.isSuccess) {
-          console.log(res)
           this.materialName = res.content.materialName
           this.sendCoupon(coupon)
         } else {

@@ -125,7 +125,7 @@ export default {
           // console.log('优惠券验证失败！若确认优惠券正常，可使用强制发送功能')
         } else {
           let couponModule = res.data.module[0]
-          console.log(couponModule)
+          // console.log(couponModule)
           let { shopNick, startTime, endTime, currencyUnit, startFee, discount, couponId, sellerId, uuid } = couponModule
           let coupon = {
             // 店铺名
@@ -148,7 +148,6 @@ export default {
             sellerId,
             uuid
           }
-          console.log(coupon)
           let count = 0
           this.couponList.forEach(item => {
             if (item.couponId === couponId) {
@@ -189,7 +188,6 @@ export default {
       // let res = {"content":{"materialName":"coupon_486920792","material":{"bizId":"9bc8ae9ba3684e7fa0714d10527ed643","bizType":2,"componentName":"coupon","componentOwnerId":0,"data":{"activityId":2507592145,"amount":"30","applyCount":1278,"couponInstanceSource":20398001,"currentTime":1551066654806,"endTime":"2019.2.25","name":"中单小法","startTime":"2019.2.18","status":1,"supplierId":1028823445,"threshold":88,"totalCount":3000,"type":"shopCoupon","uuid":"9bc8ae9ba3684e7fa0714d10527ed643"},"gmtCreate":"2019-02-22 15:50:24","gmtModified":"2019-02-25 11:50:54","id":486920792,"name":"coupon_486920792","source":"coupon","status":1,"title":"专属优惠券","userId":1950250590,"userName":"陈先生_1014"}},"message":"success","isSuccess":true}
       addMaterial(params).then(res => {
         if (res.isSuccess) {
-          console.log(res)
           this.materialName = res.content.materialName
           this.sendCoupon(coupon)
         } else {
