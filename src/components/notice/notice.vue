@@ -19,7 +19,7 @@
             <div style="margin-top: 10px;">
               <el-radio v-model="scope.row.type" :label="1">手动</el-radio>
               <el-radio v-model="scope.row.type" :label="2">自动</el-radio>
-              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="10"></el-input-number> 秒
+              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="1"></el-input-number> 秒
             </div>
           </template>
         </el-table-column>
@@ -37,7 +37,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)" v-if="!scope.row.isSending">发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
             <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
@@ -49,7 +49,7 @@
 
 <script>
 import { commonPush } from '@/api'
-import { urlParse } from '@/util/tools'
+import { urlParse, saveStorage, loadStorage } from '@/util/tools'
 export default {
   name: 'Notice',
   data() {
@@ -58,18 +58,20 @@ export default {
       // 1--手动，2--自动
       noticeType: 1,
       // 自动间隔时间
-      noticeTime: 1,
+      noticeTime: 10,
       noticeList: [],
       expands: [],
       feedId: urlParse().id,
+      liveId: urlParse().id,
       getRowKeys(row) {
         return row.id
       }
     }
   },
   created() {
-    if (localStorage.noticeList) {
-      this.noticeList = JSON.parse(localStorage.noticeList)
+    let key = 'noticeList_' + this.liveId
+    if (loadStorage(key)) {
+      this.noticeList = loadStorage(key)
       this.setCurrentIndex(this.noticeList[0])
     }
   },
@@ -90,7 +92,7 @@ export default {
       }
       this.noticeList.push(item)
       this.currentIndex = this.noticeList.length - 1
-      localStorage.noticeList = JSON.stringify(this.noticeList)
+      this.saveNoticeList()
       this.$nextTick(() => {
         this.setCurrentIndex(item)
       })
@@ -147,6 +149,7 @@ export default {
       })
         .then(() => {
           this.noticeList.splice(index, 1)
+          this.saveNoticeList()
           if (this.noticeList.length > 0) {
             this.currentIndex = 0
           } else {
@@ -174,6 +177,10 @@ export default {
           }
         }
       })
+    },
+    saveNoticeList() {
+      let key = 'noticeList_' + this.liveId
+      saveStorage(key, this.noticeList)
     }
   },
   components: {}

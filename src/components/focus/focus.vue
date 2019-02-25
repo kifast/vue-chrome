@@ -53,7 +53,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
             <el-button size="mini" type="primary" @click.stop="stopSending" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
@@ -68,7 +68,7 @@
 
 <script>
 import { getUserInfo, addMaterial, commonPush } from '@/api'
-import { urlParse } from '@/util/tools'
+import { urlParse, saveStorage, loadStorage } from '@/util/tools'
 export default {
   name: 'Focus',
   data() {
@@ -76,6 +76,7 @@ export default {
       starName: '',
       currentIndex: -1,
       feedId: urlParse().id,
+      liveId: urlParse().id,
       shopList: [
         // {
         //   avatar: '',
@@ -97,8 +98,9 @@ export default {
     }
   },
   created() {
-    if (localStorage.shopList) {
-      this.shopList = JSON.parse(localStorage.shopList)
+    let key = 'shopList_' + this.liveId
+    if (loadStorage(key)) {
+      this.shopList = loadStorage(key)
       this.setCurrentIndex(this.shopList[0])
     }
     // this.currentIndex = this.shopList.length - 1
@@ -137,7 +139,7 @@ export default {
             }
             this.shopList.push(item)
             this.currentIndex = this.shopList.length - 1
-            localStorage.shopList = JSON.stringify(this.shopList)
+            this.saveShopList()
             this.$nextTick(() => {
               this.setCurrentIndex(item)
             })
@@ -255,6 +257,7 @@ export default {
       })
         .then(() => {
           this.shopList.splice(index, 1)
+          this.saveShopList()
           if (this.shopList.length > 0) {
             this.currentIndex = 0
           } else {
@@ -282,6 +285,10 @@ export default {
           }
         }
       })
+    },
+    saveShopList() {
+      let key = 'shopList_' + this.liveId
+      saveStorage(key, this.shopList)
     }
   },
   components: {}

@@ -12,7 +12,7 @@
           <div class="flex">
             <i class="price">¥{{currentGood.itemPrice}}</i>
             <template v-if="!currentGood.isShelves">
-              <el-input placeholder="选填宝贝利益点 12字内" v-model="currentGood.right">
+              <el-input placeholder="选填宝贝利益点 12字内" v-model="currentGood.right" maxlength="12">
                 <template slot="prepend">利益点</template>
               </el-input>
             </template>
@@ -21,9 +21,20 @@
             </template>
           </div>
           <div style="margin-top: 10px;">
-            <el-input placeholder="请输入此商品优惠券链接">
-              <el-button slot="append" icon="el-icon-search"></el-button>
+            <el-input placeholder="请输入此商品优惠券链接" v-model="currentGood.coupon.url">
+              <el-button slot="append" icon="el-icon-search" @click="saveCoupon"></el-button>
             </el-input>
+            <div v-if="currentGood.coupon.shopNick">
+              <div class="flex">
+                <div style="flex: 1; font-size: 18px;">{{currentGood.coupon.shopNick}}商品优惠券</div>
+                <el-button type="primary" size="small" @click="couponAddMaterial(currentGood.coupon)">立即发送</el-button>
+                <el-button type="danger" size="small" @click="delCoupon(currentGood.coupon)">删除优惠券</el-button>
+              </div>
+              <div class="flex" style="margin-top: 10px;">
+                <div style="flex: 1; font-size: 12px;">满{{currentGood.coupon.currencyUnit}}{{currentGood.coupon.startFee}}~减{{currentGood.coupon.currencyUnit}}{{currentGood.coupon.discount}}</div>
+                <div style="font-size: 12px; color: #999;">有效期： {{currentGood.coupon.startTime}}~{{currentGood.coupon.endTime}}</div>
+              </div>
+            </div>
           </div>
           <div class="flex" style="margin-top: 10px;" v-if="!currentGood.isShelves">
             <span style="flex: 1;"></span>
@@ -31,7 +42,7 @@
             <el-button size="mini" :disabled="realIndex===0" @click="prevMove">前移</el-button>
             <el-button size="mini" :disabled="realIndex===goodsList.length-1" @click="nextMove">后移</el-button>
             <el-button type="success" size="small" @click="goodsOnShelvesConfirm">上架</el-button>
-            <el-button type="danger" size="small" @click="delGoods">删除</el-button>
+            <el-button type="danger" size="small" @click="delGoods">删除商品</el-button>
           </div>
         </div>
       </div>
@@ -42,6 +53,7 @@
           <el-button :type="item.isShelves?'danger':'success'" :plain="!(item.current || currentIndex===index)" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;"
             @click="selectGoods(index)">{{index+1}}</el-button>
           <i v-if="item.right" class="el-icon-circle-check"></i>
+          <i v-if="item.coupon&&item.coupon.shopNick" class="el-icon-tickets"></i>
         </div>
         <div class="goods-item">
           <el-button type="primary" :plain="currentIndex!==-1" :size="currentIndex===-1?'':'small'" @click="addNewGoods">{{allGoodsList.length+1}}</el-button>
@@ -100,7 +112,7 @@
 </template>
 
 <script>
-import { liveAction, commonPush, getUpGoodsList } from '@/api'
+import { liveAction, commonPush, getUpGoodsList, getCoupon, addMaterial } from '@/api'
 import { baseImgUrl } from '@/util/config'
 import { urlParse, saveStorage, loadStorage } from '@/util/tools'
 import { getUserId, getMH5Token } from '@/util/token'
@@ -113,15 +125,17 @@ export default {
       currentIndex: -1,
       goodsList: [],
       upGoodsList: [],
-      liveId: urlParse().id || 219685085515,
-      creatorId: getUserId() || 1950250590,
-      mH5Token: getMH5Token() || '9b22671251d623a524b9087970819c20',
+      feedId: urlParse().id,
+      liveId: urlParse().id || 219928757962,
+      creatorId: getUserId(), // || 1950250590,
+      mH5Token: getMH5Token(), // || '9b22671251d623a524b9087970819c20',
       dialogVisible: false,
       // 批量导入步骤
       dialogActive: 0,
       dialogText: '',
       batchGoodsList: [],
-      batchSelection: []
+      batchSelection: [],
+      couponMap: {}
     }
   },
   computed: {
@@ -138,15 +152,47 @@ export default {
     },
     // 所有上架和未上架的宝贝
     allGoodsList() {
-      return this.upGoodsList.concat(this.goodsList)
+      let ret = []
+      ret = this.upGoodsList.concat(this.goodsList)
+      ret.forEach(item => {
+        // 添加优惠券
+        // console.log(this.couponMap[item.itemId])
+        if (this.couponMap[item.itemId]) {
+          item.coupon = this.couponMap[item.itemId]
+        } else {
+          item.coupon = {
+            // 店铺名
+            url: '',
+            shopNick: '',
+            startTime: '',
+            // 截止时间
+            endTime: '',
+            // ￥
+            currencyUnit: '',
+            // "8800"
+            startFee: '',
+            // 3000
+            discount: '',
+            couponId: '',
+            id: '',
+            sellerId: '',
+            uuid: ''
+          }
+        }
+      })
+      // console.log(ret)
+      return ret
     }
   },
   created() {
     let key = 'goodsList_' + this.liveId
-    console.log(loadStorage(key))
     if (loadStorage(key)) {
       this.goodsList = loadStorage(key)
       this.resetGoodsList()
+    }
+    let keyMap = 'couponMap_' + this.liveId
+    if (loadStorage(keyMap)) {
+      this.couponMap = loadStorage(keyMap)
     }
     this.getUpGoods()
   },
@@ -194,7 +240,7 @@ export default {
       //   success: true
       // }
       liveAction(params).then(res => {
-        console.log(res)
+        // console.log(res)
         if (res.success) {
           let model = res.model
           let { itemTitle, itemPrice, itemId, imgUrl } = model
@@ -387,6 +433,86 @@ export default {
         })
         .catch(() => {})
     },
+    urlParse(url) {
+      var obj = {}
+      var reg = /[?&][^?&]+=[^?&#/]+/g
+      var arr = url.match(reg)
+      // ['?id=12345', '&a=b']
+      if (arr) {
+        arr.forEach(function(item) {
+          var tempArr = item.substring(1).split('=')
+          var key = decodeURIComponent(tempArr[0])
+          var val = decodeURIComponent(tempArr[1])
+          obj[key] = val
+        })
+      }
+      return obj
+    },
+    // 获取优惠券信息
+    saveCoupon() {
+      let url = this.currentGood.coupon.url
+      let appKey = '12574478'
+      let t = new Date().getTime()
+      let sellerId = this.urlParse(url).seller_id || this.urlParse(url).sellerId
+      let uuid = this.urlParse(url).activity_id || this.urlParse(url).activityId
+      if (url.indexOf('taoquan') === -1 && url.indexOf('shop') === -1) {
+        this.$message.error('暂不支持此优惠券，请输入以 taoquan 或 shop 开头的优惠券链接')
+        return
+      }
+      if (!(sellerId && uuid)) {
+        this.$message.error('优惠券链接错误，请检查你的链接')
+        return
+      }
+      let data = JSON.stringify({ uuid: uuid, sellerId: sellerId, queryShop: true, originalSellerId: '', marketPlace: '' })
+      let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
+      let sign = setPass(key)
+      let params = {
+        jsv: '2.3.22',
+        appKey,
+        '': '',
+        t,
+        sign,
+        api: 'mtop.taobao.couponMtopReadService.findShopBonusActivitys',
+        v: '3.0',
+        AntiCreep: true,
+        AntiFlood: true,
+        ecode: 1,
+        H5Request: true,
+        data,
+        _: new Date().getTime()
+      }
+      // let res = {"api":"mtop.taobao.couponmtopreadservice.findshopbonusactivitys","data":{"error":"false","haveNextPage":"false","module":[{"activityId":"2507592145","couponId":"1729208859","couponType":"0","currencyUnit":"￥","defaultValidityCopywriter":"2019.02.25前有效","description":"使用说明","discount":"3000","endTime":"2019-02-25 23:59:59","intervalDays":"0","intervalHours":"0","poiShop":"false","sellerId":"1028823445","shopNick":"亚菲儿旗舰店","startFee":"8800","startTime":"2019-02-18 00:00:00","status":"1","transfer":"false","useIntervalMode":"false","uuid":"9bc8ae9ba3684e7fa0714d10527ed643"}],"needInterrupt":"false","totalCount":"0"},"ret":["SUCCESS::调用成功"],"v":"3.0"}
+      getCoupon(params).then(res => {
+        if (!res.data.module) {
+          this.$message.error('优惠券验证失败！')
+          // console.log('优惠券验证失败！若确认优惠券正常，可使用强制发送功能')
+        } else {
+          let couponModule = res.data.module[0]
+          let { shopNick, startTime, endTime, currencyUnit, startFee, discount, couponId, sellerId, uuid } = couponModule
+          let coupon = {
+            url: url,
+            // 店铺名
+            shopNick,
+            startTime: startTime.split(' ')[0],
+            // 截止时间
+            endTime: endTime.split(' ')[0],
+            // ￥
+            currencyUnit,
+            // "8800"
+            startFee: (startFee / 100).toFixed(2),
+            // 3000
+            discount: (discount / 100).toFixed(2),
+            couponId,
+            id: couponId,
+            sellerId,
+            uuid
+          }
+          // this.couponMap[this.currentGood.itemId] = coupon
+          this.$set(this.couponMap, this.currentGood.itemId, coupon)
+          this.saveCouponMap()
+        }
+      })
+    },
     selectGoods(index) {
       this.currentIndex = index
       this.resetGoodsList()
@@ -415,7 +541,7 @@ export default {
       // let nData = '{"pageCode":"mainIndex","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36","params":"{\"url\":\"https://h5.m.taobao.com/\",\"referrer\":\"https://liveplatform.taobao.com/live/live_detail.htm?id=219685085515&openHlvPush=true\",\"oneId\":null,\"fid\":\"dqYCjwrIF0A\"}'
       let data = JSON.stringify({ liveId: this.liveId, creatorId: this.creatorId, n: 20, groupNum: 0 })
       let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
-      console.log(key)
+      // console.log(key)
       let sign = setPass(key)
       let params = {
         jsv: '2.4.0',
@@ -698,6 +824,96 @@ export default {
           this.goodsList.splice(this.realIndex, 1, item)
         }
       })
+    },
+    saveCouponMap() {
+      let key = 'couponMap_' + this.liveId
+      saveStorage(key, this.couponMap)
+    },
+    // 验证能否发送
+    couponAddMaterial(coupon) {
+      // data: {"bizType":2,"data":{"uuid":"9bc8ae9ba3684e7fa0714d10527ed643","supplierId":1028823445,"name":"专属优惠券","threshold":1,"amount":"1","type":"shopCoupon"},"title":"专属优惠券"}
+      let data = {
+        bizType: '2',
+        title: '专属优惠券',
+        data: {
+          uuid: coupon.uuid,
+          supplierId: coupon.sellerId,
+          name: '专属优惠券',
+          threshold: 1,
+          amount: '',
+          type: 'shopCoupon'
+        }
+      }
+      let params = {
+        _input_charset: 'utf-8',
+        data: JSON.stringify(data)
+      }
+      // let res = {"content":{"materialName":"coupon_486920792","material":{"bizId":"9bc8ae9ba3684e7fa0714d10527ed643","bizType":2,"componentName":"coupon","componentOwnerId":0,"data":{"activityId":2507592145,"amount":"30","applyCount":1278,"couponInstanceSource":20398001,"currentTime":1551066654806,"endTime":"2019.2.25","name":"中单小法","startTime":"2019.2.18","status":1,"supplierId":1028823445,"threshold":88,"totalCount":3000,"type":"shopCoupon","uuid":"9bc8ae9ba3684e7fa0714d10527ed643"},"gmtCreate":"2019-02-22 15:50:24","gmtModified":"2019-02-25 11:50:54","id":486920792,"name":"coupon_486920792","source":"coupon","status":1,"title":"专属优惠券","userId":1950250590,"userName":"陈先生_1014"}},"message":"success","isSuccess":true}
+      addMaterial(params).then(res => {
+        if (res.isSuccess) {
+          console.log(res)
+          this.materialName = res.content.materialName
+          this.sendCoupon(coupon)
+        } else {
+          this.$message.error('发送失败，请过会再发送')
+        }
+      })
+    },
+    // 发送优惠券
+    sendCoupon(row) {
+      // {"parentId":"220028695749","name":"优惠劵","feedId":"","feedType":"702","materialName":"coupon_486920792","interactiveName":"coupon_486920792"}
+      let draft = {
+        parentId: this.feedId,
+        name: '优惠劵',
+        feedId: '',
+        feedType: '702',
+        materialName: this.materialName,
+        interactiveName: this.materialName
+      }
+      let params = {
+        _input_charset: 'utf-8',
+        draft: encodeURIComponent(JSON.stringify(draft))
+      }
+      commonPush(params).then(res => {
+        if (res.success) {
+          this.$message({
+            message: '发送优惠券成功',
+            type: 'success'
+          })
+        } else {
+          this.$message.error(res.msgInfo || '发送优惠券失败，请过会再发送')
+        }
+      })
+    },
+    // 删除优惠券
+    delCoupon(coupon) {
+      this.$confirm('此操作将删除该优惠券, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          coupon = {
+            url: '',
+            shopNick: '',
+            startTime: '',
+            // 截止时间
+            endTime: '',
+            // ￥
+            currencyUnit: '',
+            // "8800"
+            startFee: '',
+            // 3000
+            discount: '',
+            couponId: '',
+            id: '',
+            sellerId: '',
+            uuid: ''
+          }
+          this.couponMap[this.currentGood.itemId] = coupon
+          this.saveCouponMap()
+        })
+        .catch(() => {})
     }
   },
   components: {}
@@ -748,6 +964,13 @@ export default {
         top: 2px;
         left: 2px;
         color: #fc6868;
+        font-size: 8px;
+      }
+      .el-icon-tickets{
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        color: #67c23a;
         font-size: 8px;
       }
     }
