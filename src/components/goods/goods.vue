@@ -916,7 +916,15 @@ export default {
         .catch(() => {})
     }
   },
-  components: {}
+  components: {},
+  watch: {
+    goodsList: {
+      handler: function(val) {
+        this.saveGoodsList(val)
+      },
+      deep: true
+    }
+  }
 }
 </script>
 
@@ -966,7 +974,7 @@ export default {
         color: #fc6868;
         font-size: 8px;
       }
-      .el-icon-tickets{
+      .el-icon-tickets {
         position: absolute;
         top: 2px;
         right: 2px;

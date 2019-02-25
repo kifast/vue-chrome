@@ -48,7 +48,7 @@
         </el-table-column>
         <el-table-column prop="time" label="间隔时间">
           <template slot-scope="scope">
-            {{scope.row.time>0&&scope.row.type==='2'?scope.row.time+'秒':'-'}}
+            {{scope.row.time>0&&scope.row.type===2?scope.row.time+'秒':'-'}}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200">
@@ -149,7 +149,14 @@ export default {
     },
     // 验证能否发送
     addMaterial(index) {
+      // 其他的type变为1
+      this.shopList.forEach((item, shopIndex) => {
+        if (index !== shopIndex) {
+          item.type = 1
+        }
+      })
       this.currentIndex = index
+      this.setCurrentIndex(index)
       let data = {
         bizType: '7',
         source: 'followcard',
@@ -191,7 +198,7 @@ export default {
       addMaterial(params).then(res => {
         if (res.isSuccess) {
           this.materialName = res.content.materialName
-          this.bizType = res.content.material.bizType
+          sessionStorage.materialName = this.materialName
           this.sendFocus()
         } else {
           this.sendFocus()
@@ -206,7 +213,7 @@ export default {
         parentId: this.feedId,
         feedId: '',
         feedType: '706',
-        interactiveName: this.materialName,
+        interactiveName: this.materialName ||　sessionStorage.materialName,
         title: this.currentShop.title,
         name: '关注小卡'
       }
