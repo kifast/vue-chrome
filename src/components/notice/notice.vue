@@ -1,7 +1,7 @@
 <template>
   <div class="notice-wrapper">
     <div class="search-box">
-      <el-input placeholder="请输入公告内容" v-model="noticeContent" class="input-with-select">
+      <el-input placeholder="请输入公告内容(70字以内)" v-model="noticeContent" class="input-with-select" maxlength="70">
         <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="addNotice"></el-button>
       </el-input>
@@ -154,6 +154,7 @@ export default {
         type: 'warning'
       })
         .then(() => {
+          clearTimeout(this.sendTimers[this.noticeList[index].id])
           this.noticeList.splice(index, 1)
           this.saveNoticeList()
           if (this.noticeList.length > 0) {

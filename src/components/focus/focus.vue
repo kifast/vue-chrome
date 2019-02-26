@@ -53,8 +53,8 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
-            <el-button size="mini" type="primary" @click.stop="stopSending" v-if="scope.row.isSending">停止发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending" :disabled="sendFlag">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
+            <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止发送</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
         </el-table-column>
@@ -89,7 +89,9 @@ export default {
       expands: [],
       getRowKeys(row) {
         return row.id
-      }
+      },
+      // 是否禁用发送按钮
+      sendFlag: false
     }
   },
   computed: {
@@ -149,6 +151,7 @@ export default {
     },
     // 验证能否发送
     addMaterial(index) {
+      if (this.sendFlag) return
       // 其他的type变为1
       this.shopList.forEach((item, shopIndex) => {
         if (index !== shopIndex) {
@@ -214,7 +217,7 @@ export default {
         parentId: this.feedId,
         feedId: '',
         feedType: '706',
-        interactiveName: this.materialName ||　sessionStorage.materialName,
+        interactiveName: this.materialName || sessionStorage.materialName,
         title: this.currentShop.title,
         name: '关注小卡'
       }
@@ -228,6 +231,11 @@ export default {
       // }
       commonPush(params).then(res => {
         if (res.success) {
+          //  成功之后禁用发送按钮10秒钟
+          this.sendFlag = true
+          setTimeout(() => {
+            this.sendFlag = false
+          }, 10000)
           this.$message({
             message: '发送关注卡片成功',
             type: 'success'
@@ -252,9 +260,9 @@ export default {
       }, this.currentShop.time * 1000)
     },
     // 停止发送
-    stopSending() {
+    stopSending(row) {
       clearTimeout(this.sendTimer)
-      this.shopList[this.currentIndex].isSending = false
+      row.isSending = false
     },
     // 删除item
     delItem(index) {
@@ -264,6 +272,8 @@ export default {
         type: 'warning'
       })
         .then(() => {
+          // 清除定时器
+          clearTimeout(this.sendTimer)
           this.shopList.splice(index, 1)
           this.saveShopList()
           if (this.shopList.length > 0) {

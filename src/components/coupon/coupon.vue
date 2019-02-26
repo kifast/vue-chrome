@@ -245,6 +245,7 @@ export default {
         type: 'warning'
       })
         .then(() => {
+          clearTimeout(this.sendTimers[this.couponList[index].id])
           this.couponList.splice(index, 1)
           this.saveCouponList()
           if (this.couponList.length > 0) {
