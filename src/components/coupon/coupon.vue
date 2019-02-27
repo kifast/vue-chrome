@@ -28,6 +28,7 @@
             <div>{{scope.row.shopNick}}</div>
             <div>满{{scope.row.currencyUnit}}{{scope.row.startFee}}~减{{scope.row.currencyUnit}}{{scope.row.discount}}</div>
             <div style="font-size: 12px; color: #999;">有效期：{{scope.row.startTime}}~{{scope.row.endTime}}</div>
+            <!-- <div>链接：<a :href="scope.row.url">{{scope.row.url}}</a></div> -->
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200">
@@ -96,6 +97,7 @@ export default {
       let t = new Date().getTime()
       let sellerId = this.urlParse(url).seller_id || this.urlParse(url).sellerId
       let uuid = this.urlParse(url).activity_id || this.urlParse(url).activityId
+      if (!url) return
       if (url.indexOf('taoquan') === -1 && url.indexOf('shop') === -1) {
         this.$message.error('暂不支持此优惠券，请输入以 taoquan 或 shop 开头的优惠券链接')
         return
@@ -141,6 +143,7 @@ export default {
           // console.log(couponModule)
           let { shopNick, startTime, endTime, currencyUnit, startFee, discount, couponId, sellerId, uuid } = couponModule
           let coupon = {
+            url: url,
             // 店铺名
             shopNick,
             startTime: startTime.split(' ')[0],
@@ -279,6 +282,8 @@ export default {
           // console.log(index)
           this.currentIndex = index
           let id = row.id
+          // 获取当前优惠券链接
+          this.couponUrl = row.url
           if (this.expands.length > 0) {
             if (id !== this.expands[0]) {
               this.expands = []

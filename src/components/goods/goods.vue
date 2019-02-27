@@ -198,7 +198,8 @@ export default {
   methods: {
     // 查询商品
     addGoods(url) {
-      if (url === '' || (url.indexOf('taobao') === -1 && url.indexOf('tmall') === -1)) {
+      if (!url) return
+      if ((url.indexOf('taobao') === -1 && url.indexOf('tmall') === -1)) {
         this.$message.error('宝贝链接有误')
         return
       }
@@ -454,6 +455,7 @@ export default {
       let t = new Date().getTime()
       let sellerId = this.urlParse(url).seller_id || this.urlParse(url).sellerId
       let uuid = this.urlParse(url).activity_id || this.urlParse(url).activityId
+      if (!url) return
       if (url.indexOf('taoquan') === -1 && url.indexOf('shop') === -1) {
         this.$message.error('暂不支持此优惠券，请输入以 taoquan 或 shop 开头的优惠券链接')
         return
