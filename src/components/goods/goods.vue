@@ -479,6 +479,8 @@ export default {
         AntiFlood: true,
         ecode: 1,
         H5Request: true,
+        type: 'jsonp',
+        dataType: 'jsonp',
         data,
         _: new Date().getTime()
       }
