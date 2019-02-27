@@ -1,0 +1,22 @@
+{
+    "manifest_version": 2,
+    "name": "极美插件",
+    "description": "极美插件是一款专为淘宝主播研发的辅助软件，拥有批量上架商品，支持多个商品链接导入，定时发送关注，公告，优惠券等功能，大大的减少主播的工作量，大大的提高主播与粉丝之间的互动",
+    "version": "1.0",
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "permissions": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+     ],
+    "content_scripts": [
+        {
+            "js": [ "index.js"  ],
+            "matches": [ "https://liveplatform.taobao.com/live/liveDetail.htm*", "https://liveplatform.taobao.com/live/live_detail.htm*" ]
+        }
+    ],
+    "browser_action": {
+        "default_icon": "static/img/logo.png",
+        "default_popup": "popup.html"
+    }
+}
