@@ -125,7 +125,7 @@ export default {
       goodsList: [],
       upGoodsList: [],
       feedId: urlParse().id,
-      liveId: urlParse().id || 219928757962,
+      liveId: urlParse().id, // || 219928757962,
       creatorId: getUserId(), // || 1950250590,
       mH5Token: getMH5Token(), // || '9b22671251d623a524b9087970819c20',
       dialogVisible: false,
@@ -549,12 +549,21 @@ export default {
         sign,
         api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',
         v: '2.0',
-        // type: 'jsonp',
-        // dataType: 'jsonp',
+        type: 'jsonp',
+        dataType: 'jsonp',
         // callback: 'mtopjsonp1',
         data,
         _: new Date().getTime()
       }
+      // params = {
+      //   jsv: '2.4.0',
+      //   appKey: 12574478,
+      //   t: 1551234882751,
+      //   sign: 'c23be5d04984b83491ecedbaa587f39c',
+      //   api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',
+      //   v: 2.0,
+      //   data: encodeURIComponent('{"liveId":"219968464906","creatorId":"1950250590","n":20,"groupNum":0}')
+      // }
       // console.log(params)
       // let res = {
       //   api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',

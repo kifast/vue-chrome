@@ -28,4 +28,15 @@ function post(url, data, time = 0) {
       return Promise.reject(err)
     })
 }
-export default { post }
+function get(url, data, time = 0) {
+  return axios
+    .get(url, {params: data})
+    .then(res => {
+      return Promise.resolve(res.data)
+    })
+    .catch(err => {
+      // 返回数据
+      return Promise.reject(err)
+    })
+}
+export default { post, get }

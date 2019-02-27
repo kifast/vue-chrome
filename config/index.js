@@ -50,8 +50,8 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
-    // assetsPublicPath: 'https://jwtj.taoertao.com/kongkong/',
-    assetsPublicPath: '/',
+    assetsPublicPath: 'https://data.goumee.com/template/jimei/',
+    // assetsPublicPath: '/',
 
     /**
      * Source Maps

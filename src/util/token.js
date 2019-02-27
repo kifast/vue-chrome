@@ -10,7 +10,17 @@ export function setToken(token) {
 
 const userIdKey = 'unb'
 export function getUserId() {
-  return Cookies.get(userIdKey)
+  let ret = ''
+  if (
+    window.pageData &&
+    window.pageData.liveDO &&
+    window.pageData.liveDO.accountId
+  ) {
+    ret = window.pageData.liveDO.accountId
+  } else if (Cookies.get(userIdKey)) {
+    ret = Cookies.get(userIdKey)
+  }
+  return ret
 }
 
 const _m_h5_tk = '_m_h5_tk'

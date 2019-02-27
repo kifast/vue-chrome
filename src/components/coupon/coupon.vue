@@ -11,9 +11,9 @@
         <el-table-column type="expand" width="10">
           <template slot-scope="scope">
             <div style="margin-top: 10px;">
-              <el-radio v-model="scope.row.type" :label="1">手动</el-radio>
-              <el-radio v-model="scope.row.type" :label="2">自动</el-radio>
-              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="10"></el-input-number> 秒
+              <el-radio v-model="scope.row.type" :label="1" @change="saveCouponList">手动</el-radio>
+              <el-radio v-model="scope.row.type" :label="2" @change="saveCouponList">自动</el-radio>
+              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="10" @change="saveCouponList"></el-input-number> 秒
             </div>
           </template>
         </el-table-column>
@@ -68,6 +68,9 @@ export default {
     let key = 'couponList_' + this.liveId
     if (loadStorage(key)) {
       this.couponList = loadStorage(key)
+      this.couponList.forEach(item => {
+        item.isSending = false
+      })
     }
   },
   methods: {
@@ -103,6 +106,7 @@ export default {
       }
       let data = JSON.stringify({ uuid: uuid, sellerId: sellerId, queryShop: true, originalSellerId: '', marketPlace: '' })
       let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
+      // console.log(key)
       let sign = setPass(key)
       let params = {
         jsv: '2.3.22',
@@ -116,6 +120,9 @@ export default {
         AntiFlood: true,
         ecode: 1,
         H5Request: true,
+        type: 'jsonp',
+        dataType: 'jsonp',
+        // callback: 'mtopjsonp1',
         data,
         _: new Date().getTime()
       }
@@ -123,6 +130,11 @@ export default {
       getCoupon(params).then(res => {
         if (!res.data.module) {
           this.$message.error('优惠券验证失败！')
+          // if (res.ret[0].indexOf('过期') > -1) {
+          //    this.$message.error('优惠券验证失败,请检查优惠券是否已过期！')
+          // } else {
+          //   this.$message.error('优惠券验证失败！')
+          // }
           // console.log('优惠券验证失败！若确认优惠券正常，可使用强制发送功能')
         } else {
           let couponModule = res.data.module[0]
@@ -281,7 +293,16 @@ export default {
       })
     }
   },
-  components: {}
+  components: {},
+  watch: {
+    // couponList: {
+    //   handler(val) {
+    //     console.log('change')
+    //     this.saveCouponList()
+    //   },
+    //   deep: true
+    // }
+  }
 }
 </script>
 

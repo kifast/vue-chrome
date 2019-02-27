@@ -17,9 +17,9 @@
           <template slot-scope="scope">
             <el-input v-model="scope.row.content" size="medium"></el-input>
             <div style="margin-top: 10px;">
-              <el-radio v-model="scope.row.type" :label="1">手动</el-radio>
-              <el-radio v-model="scope.row.type" :label="2">自动</el-radio>
-              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="1"></el-input-number> 秒
+              <el-radio v-model="scope.row.type" :label="1" @change="saveNoticeList">手动</el-radio>
+              <el-radio v-model="scope.row.type" :label="2" @change="saveNoticeList">自动</el-radio>
+              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="1" @change="saveNoticeList"></el-input-number> 秒
             </div>
           </template>
         </el-table-column>
@@ -73,6 +73,9 @@ export default {
     let key = 'noticeList_' + this.liveId
     if (loadStorage(key)) {
       this.noticeList = loadStorage(key)
+      this.noticeList.forEach(item => {
+        item.isSending = false
+      })
       this.setCurrentIndex(this.noticeList[0])
     }
   },
@@ -192,12 +195,13 @@ export default {
   },
   components: {},
   watch: {
-    'noticeList': {
-      handler(val) {
-        this.saveNoticeList()
-      },
-      deep: true
-    }
+    // noticeList: {
+    //   handler(val) {
+    //     console.log('change')
+    //     this.saveNoticeList()
+    //   },
+    //   deep: true
+    // }
   }
 }
 </script>

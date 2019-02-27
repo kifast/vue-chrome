@@ -20,10 +20,12 @@ function insertAfter(newElement, targetElement) {
 let div = document.getElementsByClassName('data-board')[0]
 let newDiv = document.createElement('div')
 newDiv.setAttribute('id', 'app')
-insertAfter(newDiv, div)
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  components: { App },
-  template: '<App/>'
-})
+if (div) {
+  insertAfter(newDiv, div)
+  /* eslint-disable no-new */
+  new Vue({
+    el: '#app',
+    components: { App },
+    template: '<App/>'
+  })
+}
