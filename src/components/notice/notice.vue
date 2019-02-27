@@ -1,7 +1,7 @@
 <template>
   <div class="notice-wrapper">
     <div class="search-box">
-      <el-input placeholder="请输入公告内容(70字以内)" v-model="noticeContent" class="input-with-select" maxlength="70">
+      <el-input placeholder="请输入公告内容(70字以内)" v-model="noticeContent" class="input-with-select" maxlength="70" @keyup.enter.native="addNotice">
         <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="addNotice"></el-button>
       </el-input>

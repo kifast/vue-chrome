@@ -1,7 +1,7 @@
 <template>
   <div class="goods-wrapper">
     <div class="search-box">
-      <el-input placeholder="请输入淘宝商品链接" v-model="goodsUrl" class="input-with-select">
+      <el-input placeholder="请输入淘宝商品链接" v-model="goodsUrl" class="input-with-select" @keyup.enter.native="addGoods(goodsUrl)">
         <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="addGoods(goodsUrl)"></el-button>
       </el-input>
@@ -21,7 +21,7 @@
             </template>
           </div>
           <div style="margin-top: 10px;">
-            <el-input placeholder="请输入此商品优惠券链接" v-model="currentGood.coupon.url">
+            <el-input placeholder="请输入此商品优惠券链接" v-model="currentGood.coupon.url" @keyup.enter.native="saveCoupon">
               <el-button slot="append" icon="el-icon-search" @click="saveCoupon"></el-button>
             </el-input>
             <div v-if="currentGood.coupon.shopNick">

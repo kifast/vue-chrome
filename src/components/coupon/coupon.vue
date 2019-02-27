@@ -1,7 +1,7 @@
 <template>
   <div class="coupon-wrapper">
     <div class="search-box">
-      <el-input placeholder="请输入优惠券链接" v-model="couponUrl" class="input-with-select">
+      <el-input placeholder="请输入优惠券链接" v-model="couponUrl" class="input-with-select" @keyup.enter.native="getCoupon">
         <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="getCoupon"></el-button>
       </el-input>

@@ -1,7 +1,7 @@
 <template>
   <div class="focus-wrapper">
     <div class="search-box">
-      <el-input placeholder="请输入店铺名称/达人昵称" v-model="starName" class="input-with-select">
+      <el-input placeholder="请输入店铺名称/达人昵称" v-model="starName" class="input-with-select" @keyup.enter.native="searchShop">
         <!-- <i class="el-icon-warning" slot="prepend"></i> -->
         <el-button slot="append" icon="el-icon-search" @click.native="searchShop"></el-button>
       </el-input>
