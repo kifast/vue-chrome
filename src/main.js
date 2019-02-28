@@ -9,23 +9,37 @@ Vue.use(ElementUI)
 
 Vue.config.productionTip = false
 
-function insertAfter(newElement, targetElement) {
-  var parent = targetElement.parentNode
-  if (parent.lastChild == targetElement) {
-    parent.appendChild(newElement)
-  } else {
-    parent.insertBefore(newElement, targetElement.nextSibling)
+var jimei = {
+  count: 0,
+  insertAfter(newElement, targetElement) {
+    var parent = targetElement.parentNode
+    if (parent.lastChild == targetElement) {
+      parent.appendChild(newElement)
+    } else {
+      parent.insertBefore(newElement, targetElement.nextSibling)
+    }
+  },
+  init() {
+    let div = document.getElementsByClassName('data-board')[0]
+    let newDiv = document.createElement('div')
+    newDiv.setAttribute('id', 'app')
+    if (div) {
+      this.insertAfter(newDiv, div)
+      /* eslint-disable no-new */
+      new Vue({
+        el: '#app',
+        components: { App },
+        template: '<App/>'
+      })
+    } else {
+      this.count++
+      // 1秒再执行
+      setTimeout(() => {
+        if (count < 11) {
+          this.init()
+        }
+      }, 1000)
+    }
   }
 }
-let div = document.getElementsByClassName('data-board')[0]
-let newDiv = document.createElement('div')
-newDiv.setAttribute('id', 'app')
-if (div) {
-  insertAfter(newDiv, div)
-  /* eslint-disable no-new */
-  new Vue({
-    el: '#app',
-    components: { App },
-    template: '<App/>'
-  })
-}
+jimei.init()
