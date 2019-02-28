@@ -109,6 +109,9 @@ export default {
       this.setCurrentIndex(this.shopList[0])
     }
     // this.currentIndex = this.shopList.length - 1
+    if (window.pageData && window.pageData.userInfo) {
+      this.starName = window.pageData.userInfo.userNick
+    }
   },
   methods: {
     // 搜索店铺
@@ -138,7 +141,7 @@ export default {
               title: res.title,
               type: 1,
               isSending: false,
-              time: '',
+              time: 60,
               userId: res.userId,
               id: new Date().getTime()
             }
@@ -247,7 +250,7 @@ export default {
             this.currentShop.isSending = true
           }
         } else {
-          this.$message.error('发送关注卡片失败')
+          this.$message.error('发送关注卡片失败，请停用其他插件，然后过5分钟后再试')
         }
         // 如果是自动发送
         if (this.currentShop.type === 2) {

@@ -125,9 +125,9 @@ export default {
       goodsList: [],
       upGoodsList: [],
       feedId: urlParse().id,
-      liveId: urlParse().id, // || 219928757962,
+      liveId: urlParse().id, // || 219968464906,
       creatorId: getUserId(), // || 1950250590,
-      mH5Token: getMH5Token(), // || '9b22671251d623a524b9087970819c20',
+      // mH5Token: getMH5Token() || 'a8326f56f7d93aedb4ed46cca53851df',
       dialogVisible: false,
       // 批量导入步骤
       dialogActive: 0,
@@ -194,6 +194,7 @@ export default {
       this.couponMap = loadStorage(keyMap)
     }
     this.getUpGoods()
+    this._runGetGoodsTimer()
   },
   methods: {
     // 查询商品
@@ -465,7 +466,7 @@ export default {
         return
       }
       let data = JSON.stringify({ uuid: uuid, sellerId: sellerId, queryShop: true, originalSellerId: '', marketPlace: '' })
-      let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
+      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
       let sign = setPass(key)
       let params = {
         jsv: '2.3.22',
@@ -537,13 +538,20 @@ export default {
       let key = 'goodsList_' + this.liveId
       saveStorage(key, this.goodsList)
     },
+    // 1秒跑一次更新宝贝
+    _runGetGoodsTimer() {
+      setTimeout(() => {
+        this.getUpGoods()
+        this._runGetGoodsTimer()
+      }, 5000)
+    },
     getUpGoods() {
       let t = new Date().getTime()
       let appKey = '12574478'
 
       // let nData = '{"pageCode":"mainIndex","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36","params":"{\"url\":\"https://h5.m.taobao.com/\",\"referrer\":\"https://liveplatform.taobao.com/live/live_detail.htm?id=219685085515&openHlvPush=true\",\"oneId\":null,\"fid\":\"dqYCjwrIF0A\"}'
       let data = JSON.stringify({ liveId: this.liveId, creatorId: this.creatorId, n: 20, groupNum: 0 })
-      let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
+      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
       // console.log(key)
       let sign = setPass(key)
       let params = {
@@ -556,8 +564,9 @@ export default {
         type: 'jsonp',
         dataType: 'jsonp',
         // callback: 'mtopjsonp1',
-        data,
-        _: new Date().getTime()
+        data
+        // __: 'ji'
+        // _: new Date().getTime()
       }
       // params = {
       //   jsv: '2.4.0',
@@ -567,100 +576,6 @@ export default {
       //   api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',
       //   v: 2.0,
       //   data: encodeURIComponent('{"liveId":"219968464906","creatorId":"1950250590","n":20,"groupNum":0}')
-      // }
-      // console.log(params)
-      // let res = {
-      //   api: 'mtop.mediaplatform.video.livedetail.itemlist.withpagination',
-      //   data: {
-      //     hotList: [],
-      //     subVideoItemList: {},
-      //     totalNum: '3',
-      //     itemList: [
-      //       {
-      //         explained: 'false',
-      //         goodsIndex: '3',
-      //         goodsList: [
-      //           {
-      //             bulk: 'false',
-      //             createTime: '1550726727000',
-      //             duplicate: 'false',
-      //             extendVal: { isCpc: '0', subTitle: '', customizedItemRights: '号的', defaultRight: '', liveId: 'null', materialName: 'liveItem_486130633' },
-      //             favored: 'false',
-      //             goodsIndex: '0',
-      //             groupNum: '0',
-      //             hasDiscount: 'false',
-      //             isCpc: '0',
-      //             itemH5TaokeUrl: '//h5.m.taobao.com/awp/core/detail.htm?id=566961679422&scm=1007.13381.38597.101200300000000',
-      //             itemId: '566961679422',
-      //             itemName: '膜法世家周冬雨定制气垫面膜套装21片深层补水保湿提亮面膜女正品',
-      //             itemPic: '//gw.alicdn.com/bao/uploaded/i1/368609005/O1CN01T9hPf42GOL4Tr1i5m_!!0-item_pic.jpg',
-      //             itemPrice: '129.90',
-      //             itemUrl: '//taoke.mdaren.taobao.com/item.htm?itemId=566961679422&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219685085515_1950250590&spm=a2141.8001249',
-      //             liveId: '219685085515',
-      //             sellerId: '0'
-      //           }
-      //         ],
-      //         sliceNum: '0'
-      //       },
-      //       {
-      //         explained: 'false',
-      //         goodsIndex: '2',
-      //         goodsList: [
-      //           {
-      //             bulk: 'false',
-      //             createTime: '1550719512000',
-      //             duplicate: 'false',
-      //             extendVal: { isCpc: '0', subTitle: '三效合一  以黑吸黑  爆款黑面膜', customizedItemRights: '', defaultRight: '三效合一  以黑吸黑  爆款黑面膜', liveId: 'null', materialName: 'liveItem_486204335' },
-      //             favored: 'false',
-      //             goodsIndex: '0',
-      //             groupNum: '0',
-      //             hasDiscount: 'false',
-      //             isCpc: '0',
-      //             itemH5TaokeUrl: '//h5.m.taobao.com/awp/core/detail.htm?id=44359701868&scm=1007.13381.38597.101200300000000',
-      //             itemId: '44359701868',
-      //             itemName: '膜法世家黑面膜21片清洁补水保湿护肤套装提亮肤色嫩肤面膜女正品',
-      //             itemPic: '//gw.alicdn.com/bao/uploaded/i1/368609005/O1CN01nrw4XV2GOL4StvZxe_!!0-item_pic.jpg',
-      //             itemPrice: '119.90',
-      //             itemUrl: '//taoke.mdaren.taobao.com/item.htm?itemId=44359701868&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219685085515_1950250590&spm=a2141.8001249',
-      //             liveId: '219685085515',
-      //             sellerId: '0'
-      //           }
-      //         ],
-      //         sliceNum: '0'
-      //       },
-      //       {
-      //         explained: 'false',
-      //         goodsIndex: '1',
-      //         goodsList: [
-      //           {
-      //             bulk: 'false',
-      //             createTime: '1550716987000',
-      //             duplicate: 'false',
-      //             extendVal: { isCpc: '0', subTitle: '', customizedItemRights: '', defaultRight: '', liveId: 'null', materialName: 'liveItem_489235333' },
-      //             favored: 'false',
-      //             goodsIndex: '0',
-      //             groupNum: '0',
-      //             hasDiscount: 'false',
-      //             isCpc: '0',
-      //             itemH5TaokeUrl: '//h5.m.taobao.com/awp/core/detail.htm?id=580440954697&scm=1007.13381.38597.101200300000000',
-      //             itemId: '580440954697',
-      //             itemName: '光希 玻尿酸补水初见面膜 补水保湿修护提亮肤色清洁女正品',
-      //             itemPic: '//gw.alicdn.com/bao/uploaded/i4/4205584633/O1CN01YKLBvt1k5xTDWcydu_!!4205584633.jpg',
-      //             itemPrice: '156.00',
-      //             itemUrl: '//taoke.mdaren.taobao.com/item.htm?itemId=580440954697&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219685085515_1950250590&spm=a2141.8001249',
-      //             liveId: '219685085515',
-      //             sellerId: '0'
-      //           }
-      //         ],
-      //         sliceNum: '0'
-      //       }
-      //     ],
-      //     starList: [],
-      //     brandCard: { tmall: 'false' },
-      //     exclusiveIcons: ['//gw.alicdn.com/mt/TB1cUh7b4SYBuNjSsphXXbGvVXa-153-39.png', '//gw.alicdn.com/mt/TB1FKdNeAyWBuNjy0FpXXassXXa-153-39.png']
-      //   },
-      //   ret: ['SUCCESS::调用成功'],
-      //   v: '2.0'
       // }
       getUpGoodsList(params).then(res => {
         // console.log(res)

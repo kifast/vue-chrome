@@ -1,6 +1,11 @@
 <template>
   <div id="app">
-    <div id="goumee_board" class="interactive-list">
+    <div id="goumee_board" class="interactive-list-jimei">
+      <div class="jimei-tips">
+        <img class="jimei-logo" src="./assets/images/logo.png">
+        <span class="jimei-name">极美插件</span>
+        <span class="jimei-version">v1.0</span>
+      </div>
       <el-tabs type="border-card">
         <el-tab-pane label="宝贝管理">
            <goods></goods>
@@ -41,22 +46,44 @@ export default {
 </script>
 
 <style lang="less">
-* {
-  padding: 0;
-  margin: 0;
-}
-.search-box {
-  background: #f5f5f5;
+// body{
+//   padding: 0; margin: 0;
+// }
+.interactive-list-jimei{
+  overflow: hidden;
+  background-color: #fff;
   padding: 10px;
-  box-shadow: rgb(220, 216, 216) 0px 0px 10px;
-  border: 1px solid rgb(227, 227, 227);
-}
-.flex{
-  display: flex;
-}
-.ext-nav {
-  li {
-    display: inline-block;
+  position: relative;
+  margin-top: 10px;
+  .jimei-tips{
+    display: flex;
+    padding: 5px 0;
+    .jimei-logo{
+      display: inline-block;
+      width: 22px; height: 22px;
+    }
+    .jimei-name{
+      margin-left: 6px; color: #666; font-size: 14px;
+      line-height: 22px;
+    }
+    .jimei-version{
+      margin-left: 6px; color: #999; font-size: 12px;
+      line-height: 22px;
+    }
+  }
+  .search-box {
+    background: #f5f5f5;
+    padding: 10px;
+    box-shadow: rgb(220, 216, 216) 0px 0px 10px;
+    border: 1px solid rgb(227, 227, 227);
+  }
+  .flex{
+    display: flex;
+  }
+  .ext-nav {
+    li {
+      display: inline-block;
+    }
   }
 }
 .el-table__expanded-cell{

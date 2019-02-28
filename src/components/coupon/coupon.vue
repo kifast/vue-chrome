@@ -58,7 +58,7 @@ export default {
       currentIndex: -1,
       feedId: urlParse().id,
       liveId: urlParse().id,
-      mH5Token: getMH5Token(),
+      // mH5Token: getMH5Token(), // || '37d4018667df1084043e285b0f304f60',
       getRowKeys(row) {
         return row.id
       },
@@ -107,8 +107,8 @@ export default {
         return
       }
       let data = JSON.stringify({ uuid: uuid, sellerId: sellerId, queryShop: true, originalSellerId: '', marketPlace: '' })
-      let key = this.mH5Token + '&' + t + '&' + appKey + '&' + data
-      // console.log(key)
+      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
+      console.log(key)
       let sign = setPass(key)
       let params = {
         jsv: '2.3.22',
@@ -128,6 +128,22 @@ export default {
         data,
         _: new Date().getTime()
       }
+//       params = {
+//         jsv: '2.3.22',
+// appKey: 12574478,
+// t: 1551325495987,
+// sign: 'b3077a4a96e568db146e3cad0282ce59',
+// api: 'mtop.taobao.couponMtopReadService.findShopBonusActivitys',
+// v: 3.0,
+// AntiCreep: true,
+// AntiFlood: true,
+// ecode: 1,
+// H5Request: true,
+// type: 'jsonp',
+// dataType: 'jsonp',
+// data: '{"uuid":"d1cbac4a59234051adb6daf587d213e8","sellerId":"21298557162","queryShop":true,"originalSellerId":"","marketPlace":""}',
+// _: 1551325439383
+//       }
       // let res = {"api":"mtop.taobao.couponmtopreadservice.findshopbonusactivitys","data":{"error":"false","haveNextPage":"false","module":[{"activityId":"2507592145","couponId":"1729208859","couponType":"0","currencyUnit":"￥","defaultValidityCopywriter":"2019.02.25前有效","description":"使用说明","discount":"3000","endTime":"2019-02-25 23:59:59","intervalDays":"0","intervalHours":"0","poiShop":"false","sellerId":"1028823445","shopNick":"亚菲儿旗舰店","startFee":"8800","startTime":"2019-02-18 00:00:00","status":"1","transfer":"false","useIntervalMode":"false","uuid":"9bc8ae9ba3684e7fa0714d10527ed643"}],"needInterrupt":"false","totalCount":"0"},"ret":["SUCCESS::调用成功"],"v":"3.0"}
       getCoupon(params).then(res => {
         if (!res.data.module) {
@@ -172,7 +188,10 @@ export default {
             }
           })
           if (count > 0) {
-            this.$message.error('优惠券信息已刷新！')
+            this.$message({
+              message: '优惠券信息已刷新！',
+              type: 'success'
+            })
             return
           }
           this.couponList.push(coupon)
@@ -237,7 +256,7 @@ export default {
             this._runAutoSend(row)
           }
         } else {
-          this.$message.error('发送优惠券失败')
+          this.$message.error(res.msgInfo || '发送优惠券失败')
         }
       })
     },

@@ -35,16 +35,17 @@ export function getUpGoodsList(data) {
     param: 'callback',
     prefix: 'mtopjsonp1'
   }
-  // data._tb_token_ = getToken()
-  let url = 'https://h5api.m.taobao.com/h5/mtop.mediaplatform.video.livedetail.itemlist.withpagination/2.0/'
+  let url = `https://h5api.m.taobao.com/h5/${data.api}/${data.v}/`
+  data.__ = 'ji'
   return jsonp(url, data, options)
 }
-// 获取上架的商品列表
+// 获取优惠券信息
 export function getCoupon(data) {
   let options = {
     param: 'callback',
-    prefix: 'mtopjsonp10'
+    prefix: 'mtopjsonp1'
   }
-  let url = 'https://acs.m.taobao.com/h5/mtop.taobao.couponmtopreadservice.findshopbonusactivitys/3.0/'
+  let url = `https://acs.m.taobao.com/h5/${data.api}/${data.v}/`
+  data.__ = 'ji'
   return jsonp(url, data, options)
 }
