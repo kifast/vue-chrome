@@ -601,6 +601,7 @@ export default {
             list.unshift(goodsItem)
           })
           this.upGoodsList = list
+          saveStorage('upGoodsList', this.upGoodsList)
         }
       })
     },

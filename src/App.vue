@@ -7,6 +7,9 @@
         <span class="jimei-version">v1.0</span>
       </div>
       <el-tabs type="border-card">
+        <el-tab-pane label="自动回复">
+          <autoReply></autoReply>
+        </el-tab-pane>
         <el-tab-pane label="宝贝管理">
            <goods></goods>
         </el-tab-pane>
@@ -29,6 +32,7 @@ import Focus from './components/focus/focus'
 import Notice from './components/notice/notice'
 import Goods from './components/goods/goods'
 import Coupon from './components/coupon/coupon'
+import autoReply from './components/autoReply/autoReply'
 export default {
   name: 'App',
   data() {
@@ -40,7 +44,8 @@ export default {
     Focus,
     Notice,
     Goods,
-    Coupon
+    Coupon,
+    autoReply
   }
 }
 </script>
@@ -49,6 +54,9 @@ export default {
 // body{
 //   padding: 0; margin: 0;
 // }
+.mt10{
+  margin-top: 10px;
+}
 .interactive-list-jimei{
   overflow: hidden;
   background-color: #fff;
