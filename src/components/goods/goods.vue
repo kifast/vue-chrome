@@ -442,8 +442,8 @@ export default {
       if (arr) {
         arr.forEach(function(item) {
           var tempArr = item.substring(1).split('=')
-          var key = decodeURIComponent(tempArr[0])
-          var val = decodeURIComponent(tempArr[1])
+          var key = tempArr[0]
+          var val = tempArr[1]
           obj[key] = val
         })
       }

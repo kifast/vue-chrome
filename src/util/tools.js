@@ -1,3 +1,5 @@
+import storage from 'good-storage'
+
 export function urlParse() {
   var url = window.location.href
   var obj = {}
@@ -15,18 +17,25 @@ export function urlParse() {
   return obj
 }
 
+const JM_KEY = '__jimei__'
 export function saveStorage(key, data) {
-  if (typeof data === 'object') {
-    data = JSON.stringify(data)
-  }
-  localStorage.setItem(key, data)
+  let obj = storage.get(JM_KEY, {})
+  obj[key] = data
+  storage.set(JM_KEY, obj)
+  // if (typeof data === 'object') {
+  //   data = JSON.stringify(data)
+  // }
+  // localStorage.setItem(key, data)
 }
 
 export function loadStorage(key) {
-  let data = localStorage.getItem(key)
-  try {
-    data = JSON.parse(data)
-  } catch (error) {
-  }
-  return data
+  let obj = storage.get(JM_KEY, {})
+  let ret = obj[key]
+  return ret
+  // let data = localStorage.getItem(key)
+  // try {
+  //   data = JSON.parse(data)
+  // } catch (error) {
+  // }
+  // return data
 }
