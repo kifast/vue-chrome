@@ -424,7 +424,6 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          clearTimeout(this.sendTimers[this.replyList[index].id])
           this.replyList.splice(index, 1)
           this.savereplyList()
           this.currentIndex = -1
