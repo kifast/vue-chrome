@@ -29,7 +29,7 @@
           <template slot-scope="scope">
             <div>间隔时间：<el-radio v-model="scope.row.type" :label="1" @change="saveShopList">手动</el-radio>
               <el-radio v-model="scope.row.type" :label="2" @change="saveShopList">自动</el-radio>
-              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="10" @change="saveShopList"></el-input-number> 秒
+              <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="300" @change="saveShopList"></el-input-number> 秒
             </div>
           </template>
         </el-table-column>
@@ -61,7 +61,7 @@
       </el-table>
     </div>
     <div class="tips">
-      推送关注最少10秒钟,目前定时推送其中一个店铺或主播其他的就会停止推送。
+      推送关注最少5分钟,目前定时推送其中一个店铺或主播其他的就会停止推送。
     </div>
   </div>
 </template>
@@ -141,7 +141,7 @@ export default {
               title: res.title,
               type: 1,
               isSending: false,
-              time: 60,
+              time: 300,
               userId: res.userId,
               id: new Date().getTime()
             }
@@ -241,7 +241,7 @@ export default {
           this.sendFlag = true
           setTimeout(() => {
             this.sendFlag = false
-          }, 10000)
+          }, 300000)
           this.$message({
             message: '发送关注卡片成功',
             type: 'success'
@@ -250,7 +250,7 @@ export default {
             this.currentShop.isSending = true
           }
         } else {
-          this.$message.error('发送关注卡片失败，请停用其他插件，然后过5分钟后再试')
+          this.$message.error('发送关注卡片失败，请稍后再试')
         }
         // 如果是自动发送
         if (this.currentShop.type === 2) {

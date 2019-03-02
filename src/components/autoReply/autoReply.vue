@@ -1,7 +1,7 @@
 <template>
   <div class="reply-wrapper">
     <div class="search-box">
-      <!-- <el-input placeholder="请输入关键字" v-model="replyContent" class="input-with-select" maxlength="70" @keyup.enter.native="addNotice">
+      <!-- <el-input placeholder="请输入关键字" v-model="replyObj.content" class="input-with-select" maxlength="70" @keyup.enter.native="addNotice">
         <el-button slot="append" @click.native="addNotice">添加</el-button>
       </el-input> -->
       <div class="key-box">
@@ -9,7 +9,7 @@
           为回复指定回复关键字，或从已上架宝贝中选择宝贝编号作为关键字，粉丝发送关键字作为评论可获得自动回复
         </div>
         <div class="mt10">
-          <el-tag :key="tag" v-for="tag in replyTags" closable :disable-transitions="false" @close="handleClose(tag)">
+          <el-tag :key="tag" v-for="tag in replyObj.keyList" closable :disable-transitions="false" @close="handleClose(tag)">
             {{tag}}
           </el-tag>
           <el-input class="input-new-tag" v-if="replyInputVisible" v-model="replyInputValue" ref="saveTagInput" size="small" @keyup.enter.native="handleInputConfirm" @blur="handleInputConfirm">
@@ -19,20 +19,20 @@
         </div>
       </div>
     </div>
-    <div class="search-box mt10" v-if="replyTags.length>0">
+    <div class="search-box mt10" v-if="replyObj.keyList.length>0">
       <div class="reply-content-box">
         <div class="tips">
           输入回复内容并在预览中确定格式，多行回复自动转换为多段发出，请注意每段回复的长度是否超过显示边界
         </div>
         <div class="mt10">
           <el-input type="textarea" :rows="3" placeholder="请输入回复内容，每行内容为一段回复，每段35字以内，最多三段。
-回复默认使用私密模式(只对回复用户可见)。" v-model="replyContent">
+回复默认使用私密模式(只对回复用户可见)。" v-model="replyObj.content">
           </el-input>
         </div>
         <div class="flex mt10">
           <div style="flex: 1;">
-            <template v-if="segList.length > 0">
-              <p class="p-item" v-for="item in segList" :key="item.idx" v-show="item.msg!=''"><b style="color: rgb(244, 61, 105);">主播回复@用*户</b>{{item.msg}}</p>
+            <template v-if="replyObj.segList.length > 0">
+              <p class="p-item" v-for="item in replyObj.segList" :key="item.idx" v-show="item.msg!=''"><b style="color: rgb(244, 61, 105);">主播回复@用*户</b>{{item.msg}}</p>
             </template>
           </div>
           <div class="text-box">
@@ -43,6 +43,7 @@
     </div>
     <div class="notice-list-wrapper">
       <el-table class="notice-list" :data="replyList" style="width: 100%" @row-click="setCurrentIndex">
+        <el-table-column width="10"></el-table-column>
         <el-table-column label="#" width="40">
           <template slot-scope="scope">
             {{scope.$index+1}}
@@ -88,7 +89,7 @@
         </ul>
         <div class="mt10 flex">
           <span style="flex: 1;"></span>
-          <el-button size="small" type="primary">关联</el-button>
+          <el-button size="small" type="primary" @click="dialogVisible=false">关联</el-button>
         </div>
       </el-dialog>
     </div>
@@ -102,15 +103,16 @@ export default {
   name: 'autoReply',
   data() {
     return {
-      replyTags: [],
+      replyList: [],
+      replyObj: {
+        keyList: [],
+        content: '',
+        // 当前回复列表
+        segList: [],
+        itemList: []
+      },
       replyInputVisible: false,
       replyInputValue: '',
-      replyContent: '',
-      // 所有回复列表
-      replyList: [],
-      // 当前回复列表
-      segList: [],
-      itemList: [],
       currentIndex: -1,
       expands: [],
       feedId: urlParse().id,
@@ -130,40 +132,40 @@ export default {
     }
   },
   created() {
-    this.replyList = [
-      {
-        content: '好好啊的\n给你推荐一下\n真的',
-        segList: [{ idx: 0, type: 'normal', msg: '好好啊的' }, { idx: 1, type: 'normal', msg: '给你推荐一下' }, { idx: 2, type: 'normal', msg: '真的' }],
-        keyList: ['好的', 7, '7号', 8, '8号'],
-        itemList: [6, 7],
-        setList: [],
-        id: '4694217560',
-        cmtCount: 0,
-        replyCount: 0
-      },
-      {
-        content: '2222\n33333\n真的',
-        segList: [{ idx: 0, type: 'normal', msg: '4444' }, { idx: 1, type: 'normal', msg: '1111' }, { idx: 2, type: 'normal', msg: '真的' }],
-        keyList: ['好的', 4, '7号', 5, '8号'],
-        itemList: [3, 4],
-        setList: [],
-        id: '4694217561',
-        cmtCount: 0,
-        replyCount: 0
-      }
-    ]
+    // this.replyList = [
+    //   {
+    //     content: '好好啊的\n给你推荐一下\n真的',
+    //     segList: [{ idx: 0, type: 'normal', msg: '好好啊的' }, { idx: 1, type: 'normal', msg: '给你推荐一下' }, { idx: 2, type: 'normal', msg: '真的' }],
+    //     keyList: ['好的', 7, '7号', 8, '8号'],
+    //     itemList: [6, 7],
+    //     setList: [],
+    //     id: '4694217560',
+    //     cmtCount: 0,
+    //     replyCount: 0
+    //   },
+    //   {
+    //     content: '2222\n33333\n真的',
+    //     segList: [{ idx: 0, type: 'normal', msg: '4444' }, { idx: 1, type: 'normal', msg: '1111' }, { idx: 2, type: 'normal', msg: '真的' }],
+    //     keyList: ['好的', 4, '7号', 5, '8号'],
+    //     itemList: [3, 4],
+    //     setList: [],
+    //     id: '4694217561',
+    //     cmtCount: 0,
+    //     replyCount: 0
+    //   }
+    // ]
     let key = 'replyList_' + this.liveId
     if (loadStorage(key)) {
       this.replyList = loadStorage(key)
       this.replyList.forEach(item => {
         item.isSending = false
       })
-      this.setCurrentIndex(this.replyList[0])
+      // this.setCurrentIndex(this.replyList[0])
     }
   },
   methods: {
     handleClose(tag) {
-      this.replyTags.splice(this.replyTags.indexOf(tag), 1)
+      this.replyObj.keyList.splice(this.replyObj.keyList.indexOf(tag), 1)
     },
     showInput() {
       this.replyInputVisible = true
@@ -174,7 +176,17 @@ export default {
     handleInputConfirm() {
       let replyInputValue = this.replyInputValue
       if (replyInputValue) {
-        this.replyTags.push(replyInputValue)
+        let flag = false
+        this.replyList.forEach(reply => {
+          if (reply.keyList.includes(replyInputValue) || reply.keyList.includes(parseInt(replyInputValue))) {
+            flag = true
+          }
+        })
+        if (flag) {
+          this.$message.error('关键字已被占用')
+          return
+        }
+        this.replyObj.keyList.push(replyInputValue)
       }
       this.replyInputVisible = false
       this.replyInputValue = ''
@@ -213,11 +225,6 @@ export default {
     checkSelect(index) {
       // 0--正常 1--自动回复已关联 2--已选
       let ret = 0
-      this.itemList.forEach((item) => {
-        if (item === index) {
-          ret = 2
-        }
-      })
       this.replyList.forEach((reply, replyIndex) => {
         reply.itemList.forEach((item) => {
           if (item === index) {
@@ -225,32 +232,63 @@ export default {
           }
         })
       })
+      this.replyObj.itemList.forEach((item) => {
+        if (item === index) {
+          ret = 2
+        }
+      })
       return ret
     },
     selectGoods(index) {
       let type = this.checkSelect(index)
+      // 正常选择
       if (type === 0) {
-        this.replyTags.push(index + 1)
-        this.itemList.push(index)
+        let number = index + 1
+        this.replyObj.keyList.push(number)
+        this.replyObj.keyList.push(number + '号')
+        this.replyObj.itemList.push(index)
       }
+      // 取消选择
       if (type === 2) {
-        let tagIndex = 0
-        this.replyTags.forEach((item,i) => {
+        // 去掉reply对应的数字
+        let tagIndex = -1
+        this.replyObj.keyList.forEach((item, i) => {
           if (item === index + 1) {
             tagIndex = i
           }
         })
-        this.replyTags.splice(tagIndex, 1)
-        this.itemList.splice(tagIndex, 1)
+        if (tagIndex > -1) {
+          this.replyObj.keyList.splice(tagIndex, 1)
+        }
+        // 去掉reply对应的X号
+        tagIndex = -1
+        this.replyObj.keyList.forEach((item, i) => {
+          if (item === index + 1 + '号') {
+            tagIndex = i
+          }
+        })
+        if (tagIndex > -1) {
+          this.replyObj.keyList.splice(tagIndex, 1)
+        }
+        // 去掉replyObj.itemList对应的数字
+        let itemIndex = -1
+        this.replyObj.itemList.forEach((item, i) => {
+          if (item === index) {
+            itemIndex = i
+          }
+        })
+        if (itemIndex > -1) {
+          this.replyObj.itemList.splice(itemIndex, 1)
+        }
       }
     },
     // 添加到公告列表
     addNotice() {
-      if (this.replyContent === '') {
+      if (this.replyObj.content === '') {
         return
       }
       let item = {
-        content: this.replyContent,
+        content: this.replyObj.content,
         type: this.noticeType,
         time: this.noticeTime,
         before: '',
@@ -337,9 +375,10 @@ export default {
       this.replyList.forEach((item, index) => {
         if (row.id === item.id) {
           this.currentIndex = index
-          this.replyTags = item.keyList
-          this.replyContent = item.content
-          this.itemList = item.itemList
+          this.replyObj.keyList = item.keyList
+          this.replyObj.content = item.content
+          this.replyObj.itemList = item.itemList
+          // this.replyObj = item
         }
       })
     },
@@ -350,14 +389,13 @@ export default {
   },
   components: {},
   watch: {
-    // replyList: {
-    //   handler(val) {
-    //     console.log('change')
-    //     this.savereplyList()
-    //   },
-    //   deep: true
-    // }
-    replyContent(val) {
+    replyList: {
+      handler(val) {
+        this.savereplyList()
+      },
+      deep: true
+    },
+    'replyObj.content'(val){
       let list = []
       let arr = val.split('\n')
       arr.forEach((item, index) => {
@@ -369,7 +407,7 @@ export default {
           })
         }
       })
-      this.segList = list
+      this.replyObj.segList = list
     }
   }
 }
