@@ -321,12 +321,10 @@ export default {
           replying: false
         }
         this.replyList.push(Object.assign({}, obj, this.replyObj))
+        this.resetReplyObj()
       }
     },
     getComments() {
-      let t = new Date().getTime()
-      let appKey = '12574478'
-      
       let data = JSON.stringify({
         limit: 20,
         topic: window.pageData && window.pageData.liveDO && window.pageData.liveDO.topic,
@@ -335,17 +333,10 @@ export default {
         paginationContext: this.paginationContext || null,
         from: 'zhongkong'
       })
-      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
-      let sign = setPass(key)
       let params = {
         jsv: '2.5.0',
-        appKey: '12574478',
-        t,
-        sign,
         api: 'mtop.taobao.iliad.comment.query.latest',
         v: '1.0',
-        type: 'jsonp',
-        dataType: 'jsonp',
         data
       }
       // let res =  {"api":"mtop.taobao.iliad.comment.query.latest","data":{"comments":[{"commentId":"220352186503","commodities":[],"content":"3","paginationContext":"{\"commentId\":220352186503,\"refreshTime\":1551510868123,\"timestamp\":1551508851000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551508851000"},{"commentId":"220236212489","commodities":[],"content":"1","paginationContext":"{\"commentId\":220236212489,\"refreshTime\":1551510868123,\"timestamp\":1551509136000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509136000"},{"commentId":"220294117651","commodities":[],"content":"1号","paginationContext":"{\"commentId\":220294117651,\"refreshTime\":1551510868123,\"timestamp\":1551509207000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509207000"},{"commentId":"220236936319","commodities":[],"content":"3","paginationContext":"{\"commentId\":220236936319,\"refreshTime\":1551510868123,\"timestamp\":1551509822000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509822000"},{"commentId":"220236908595","commodities":[],"content":"3号","paginationContext":"{\"commentId\":220236908595,\"refreshTime\":1551510868123,\"timestamp\":1551509855000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509855000"},{"commentId":"220294709699","commodities":[],"content":"1","paginationContext":"{\"commentId\":220294709699,\"refreshTime\":1551510868123,\"timestamp\":1551509866000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509866000"},{"commentId":"220237032749","commodities":[],"content":"3","paginationContext":"{\"commentId\":220237032749,\"refreshTime\":1551510868123,\"timestamp\":1551509997000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509997000"}],"delay":"5000","paginationContext":"{\"commentId\":220237032749,\"refreshTime\":1551510868123,\"timestamp\":1551509997000}"},"ret":["SUCCESS::调用成功"],"v":"1.0"}
@@ -367,7 +358,9 @@ export default {
             })
             // 如果有
             let currentReply = this.replyList[matchIndex]
+            // console.log(isMatch, this.paginationContext, currentReply.replying)
             if (isMatch && this.paginationContext && currentReply.replying) {
+              // console.log(currentReply)
               currentReply.cmtCount++
               let segList = currentReply.segList
               let _sendList = (i) => {
@@ -392,10 +385,6 @@ export default {
     },
     // 发送自动回复
     sendReply({commentId, content}) {
-      // console.log(commentId, content)
-      let t = new Date().getTime()
-      let appKey = '12574478'
-      
       let data = JSON.stringify({
         topic: window.pageData && window.pageData.liveDO && window.pageData.liveDO.topic,
         content: content,
@@ -404,17 +393,10 @@ export default {
         isPrivate: true,
         namespace: '200001'
       })
-      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
-      let sign = setPass(key)
       let params = {
         jsv: '2.5.0',
-        appKey: '12574478',
-        t,
-        sign,
         api: 'mtop.taobao.iliad.comment.publish',
         v: '1.0',
-        type: 'jsonp',
-        dataType: 'jsonp',
         data
       }
       getCommon(params).then(res => {
@@ -445,11 +427,7 @@ export default {
           clearTimeout(this.sendTimers[this.replyList[index].id])
           this.replyList.splice(index, 1)
           this.savereplyList()
-          if (this.replyList.length > 0) {
-            this.currentIndex = 0
-          } else {
-            this.currentIndex = -1
-          }
+          this.currentIndex = -1
         })
         .catch(() => {})
     },

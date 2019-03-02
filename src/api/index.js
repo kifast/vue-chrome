@@ -1,6 +1,7 @@
 import api from './api'
 import jsonp from './jsonp'
-import { getToken } from '../util/token'
+import { getToken, getMH5Token } from '../util/token'
+import setPass from '../util/pass'
 // 查询用户名
 export function getUserInfo(data) {
   return api.post('/video/component/getUserInfo.do', data)
@@ -35,8 +36,20 @@ export function getCommon(data) {
     param: 'callback',
     prefix: 'mtopjsonp1'
   }
+  let t = new Date().getTime()
+  let appKey = '12574478'
+  let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data.data
+  let sign = setPass(key)
+  let obj = {
+    t,
+    appKey,
+    sign,
+    type: 'jsonp',
+    dataType: 'jsonp',
+    __: 'ji'
+  }
+  Object.assign(data, obj)
   let url = `https://h5api.m.taobao.com/h5/${data.api}/${data.v}/`
-  data.__ = 'ji'
   return jsonp(url, data, options)
 }
 // 获取上架的商品列表
