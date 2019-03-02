@@ -1,5 +1,6 @@
 <template>
   <div class="reply-wrapper">
+    <div v-if="currentIndex > -1 && !newFlag" style="margin-bottom: 10px;"><el-button type="primary" @click="resetReplyObj">新增自动回复规则</el-button></div>
     <div class="search-box">
       <!-- <el-input placeholder="请输入关键字" v-model="replyObj.content" class="input-with-select" maxlength="70" @keyup.enter.native="addNotice">
         <el-button slot="append" @click.native="addNotice">添加</el-button>
@@ -29,20 +30,20 @@
 回复默认使用私密模式(只对回复用户可见)。" v-model="replyObj.content">
           </el-input>
         </div>
-        <div class="flex mt10">
+        <div class="flex mt10" style="align-items: center;">
           <div style="flex: 1;">
             <template v-if="replyObj.segList.length > 0">
               <p class="p-item" v-for="item in replyObj.segList" :key="item.idx" v-show="item.msg!=''"><b style="color: rgb(244, 61, 105);">主播回复@用*户</b>{{item.msg}}</p>
             </template>
           </div>
           <div class="text-box">
-            <el-button size="small" type="primary">保存设置</el-button>
+            <el-button size="small" type="primary" @click="saveSettings">保存设置</el-button>
           </div>
         </div>
       </div>
     </div>
     <div class="notice-list-wrapper">
-      <el-table class="notice-list" :data="replyList" style="width: 100%" @row-click="setCurrentIndex">
+      <el-table class="notice-list" :data="replyList" style="width: 100%" @row-click="setCurrentIndex" :row-class-name="rowClassName">
         <el-table-column width="10"></el-table-column>
         <el-table-column label="#" width="40">
           <template slot-scope="scope">
@@ -61,13 +62,13 @@
         </el-table-column>
         <el-table-column label="状态">
           <template slot-scope="scope">
-            <div>{{scope.row.replyCount}}次</div>
+            <div><span v-if="scope.row.replying" style="color: rgb(244, 61, 105);">正在回复<br></span><span v-else>已回复<br></span>{{scope.row.cmtCount}}次</div>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click.stop="sendNotice(scope.row)" v-if="!scope.row.isSending">开始执行</el-button>
-            <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止执行</el-button>
+            <el-button size="mini" type="primary" @click.stop="runReply(scope.row)" v-if="!scope.row.replying">开始执行</el-button>
+            <el-button size="mini" type="primary" @click.stop="stopReply(scope.row)" v-if="scope.row.replying">停止执行</el-button>
             <el-button size="mini" type="primary" @click.stop="delItem(scope.$index)">删除</el-button>
           </template>
         </el-table-column>
@@ -97,12 +98,17 @@
 </template>
 
 <script>
-import { commonPush } from '@/api'
+import { commonPush, getCommon } from '@/api'
 import { urlParse, saveStorage, loadStorage } from '@/util/tools'
+import { getMH5Token } from '@/util/token'
+import setPass from '@/util/pass'
+
 export default {
   name: 'autoReply',
   data() {
     return {
+      // 正在新增
+      newFlag: true,
       replyList: [],
       replyObj: {
         keyList: [],
@@ -162,6 +168,8 @@ export default {
       })
       // this.setCurrentIndex(this.replyList[0])
     }
+    // 获取最新评论
+    this._runAutoReply()
   },
   methods: {
     handleClose(tag) {
@@ -193,32 +201,32 @@ export default {
     },
     // 关联商品
     lineGoods() {
-      let def = [{"explained":"false","goodsIndex":"8","goodsList":[{"bulk":"false","createTime":"1551409852000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"活力时尚的风格；适合年轻人穿搭","customizedItemRights":"","defaultRight":"活力时尚的风格；适合年轻人穿搭","liveId":"null","materialName":"liveItem_494592950"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=584274708149&scm=1007.13381.38597.101200300000000","itemId":"584274708149","itemName":"Skechers斯凯奇女鞋复古运动鞋 丁泽仁同款增高潮鞋熊猫鞋休闲鞋","itemPic":"//gw.alicdn.com/bao/uploaded/i1/2129855716/O1CN01h6KXqN1s5yOoyqT5s_!!0-item_pic.jpg","itemPrice":"499.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=584274708149&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"7","goodsList":[{"bulk":"false","createTime":"1551329212000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"3层重磅加厚，克重高达550G","customizedItemRights":"","defaultRight":"3层重磅加厚，克重高达550G","liveId":"null","materialName":"liveItem_497011258"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=575804584009&scm=1007.13381.38597.101200300000000","itemId":"575804584009","itemName":"南极人保暖内衣男加绒加厚情侣女加肥加大码秋衣秋裤套装棉毛衫ZB","itemPic":"//gw.alicdn.com/bao/uploaded/i1/738722023/O1CN011QoZhqJ6Npd949m_!!0-item_pic.jpg","itemPrice":"179.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=575804584009&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"6","goodsList":[{"bulk":"false","createTime":"1551329178000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"3层重磅加厚高达550G【预】","customizedItemRights":"","defaultRight":"3层重磅加厚高达550G【预】","liveId":"null","materialName":"liveItem_497019252"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=576878099970&scm=1007.13381.38597.101200300000000","itemId":"576878099970","itemName":"南极人保暖内衣男加绒加厚女士冬季打底秋衣秋裤套装大码棉毛衫ZB","itemPic":"//gw.alicdn.com/bao/uploaded/i3/738722023/O1CN01VxVnCx1QoZiSRDjJC_!!0-item_pic.jpg","itemPrice":"159.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=576878099970&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"5","goodsList":[{"bulk":"false","createTime":"1551324281000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"四季穿不闷热 亲肤透气不瘙痒 健康优质纯棉","customizedItemRights":"","defaultRight":"四季穿不闷热 亲肤透气不瘙痒 健康优质纯棉","liveId":"null","materialName":"liveItem_496911231"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=543229758847&scm=1007.13381.38597.101200300000000","itemId":"543229758847","itemName":"南极人男士内裤男平角裤纯棉青年透气韩版全棉四角裤头短裤衩潮LM","itemPic":"//gw.alicdn.com/bao/uploaded/i1/738722023/O1CN011QoZiThL9G1HglG_!!0-item_pic.jpg","itemPrice":"49.90","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=543229758847&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"4","goodsList":[{"bulk":"false","createTime":"1551321189000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"德绒发热纤维，舒适保暖","customizedItemRights":"","defaultRight":"德绒发热纤维，舒适保暖","liveId":"null","materialName":"liveItem_496735810"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=575851669945&scm=1007.13381.38597.101200300000000","itemId":"575851669945","itemName":"南极人保暖内衣男加绒加厚德绒自发热女士秋衣秋裤套装棉毛衫ZB","itemPic":"//gw.alicdn.com/bao/uploaded/i2/738722023/O1CN011QoZhr4cqctO5aH_!!0-item_pic.jpg","itemPrice":"119.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=575851669945&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"3","goodsList":[{"bulk":"false","createTime":"1551237021000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"一脚套设计；彰显时尚休闲","customizedItemRights":"","defaultRight":"一脚套设计；彰显时尚休闲","liveId":"null","materialName":"liveItem_495119595"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=586655825409&scm=1007.13381.38597.101200300000000","itemId":"586655825409","itemName":"Skechers斯凯奇男鞋新款橡筋一脚套运动鞋 时尚轻质休闲鞋666082","itemPic":"//gw.alicdn.com/bao/uploaded/i4/2129855716/O1CN01npzrUw1s5yPQv6a0A_!!0-item_pic.jpg","itemPrice":"469.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=586655825409&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"2","goodsList":[{"bulk":"false","createTime":"1551237010000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"轻质舒适；时尚休闲","customizedItemRights":"","defaultRight":"轻质舒适；时尚休闲","liveId":"null","materialName":"liveItem_492014541"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=586656053149&scm=1007.13381.38597.101200300000000","itemId":"586656053149","itemName":"Skechers斯凯奇男鞋新款时尚一脚套运动鞋 轻质舒适跑步鞋 55113","itemPic":"//gw.alicdn.com/bao/uploaded/i2/2129855716/O1CN01GocIL71s5yPNRIyoa_!!0-item_pic.jpg","itemPrice":"539.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=586656053149&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"1","goodsList":[{"bulk":"false","createTime":"1551232375000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"简洁厚实大底；时尚运动风格","customizedItemRights":"","defaultRight":"简洁厚实大底；时尚运动风格","liveId":"null","materialName":"liveItem_492066235"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=584479513020&scm=1007.13381.38597.101200300000000","itemId":"584479513020","itemName":"Skechers斯凯奇男鞋复古运动鞋 跑步鞋厚底增高潮鞋老爹鞋休闲鞋","itemPic":"//gw.alicdn.com/bao/uploaded/i1/2129855716/O1CN01lhBO2T1s5yPDlJg6K_!!0-item_pic.jpg","itemPrice":"569.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=584479513020&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"}]
-      let list = []
-      def.forEach(item => {
-        let goods = item.goodsList[0]
-        let { itemName, itemPrice, itemId, itemPic, itemUrl } = goods
-        let goodsItem = {
-          itemTitle: itemName,
-          itemPrice,
-          itemId,
-          url: `https://item.taobao.com/item.htm?id=${itemId}`,
-          imgUrl: itemPic,
-          // 优惠券链接
-          link: '',
-          // 利益点
-          right: goods.extendVal.customizedItemRights,
-          isShelves: true,
-          current: false
-        }
-        list.unshift(goodsItem)
-      })
-      this.upGoodsList = list
-      // this.upGoodsList = loadStorage('upGoodsList') || def
-      // if (this.upGoodsList.length === 0) {
-      //   this.$message.error('还没有上架宝贝')
-      //   return
-      // }
+      // let def = [{"explained":"false","goodsIndex":"8","goodsList":[{"bulk":"false","createTime":"1551409852000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"活力时尚的风格；适合年轻人穿搭","customizedItemRights":"","defaultRight":"活力时尚的风格；适合年轻人穿搭","liveId":"null","materialName":"liveItem_494592950"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=584274708149&scm=1007.13381.38597.101200300000000","itemId":"584274708149","itemName":"Skechers斯凯奇女鞋复古运动鞋 丁泽仁同款增高潮鞋熊猫鞋休闲鞋","itemPic":"//gw.alicdn.com/bao/uploaded/i1/2129855716/O1CN01h6KXqN1s5yOoyqT5s_!!0-item_pic.jpg","itemPrice":"499.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=584274708149&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"7","goodsList":[{"bulk":"false","createTime":"1551329212000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"3层重磅加厚，克重高达550G","customizedItemRights":"","defaultRight":"3层重磅加厚，克重高达550G","liveId":"null","materialName":"liveItem_497011258"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=575804584009&scm=1007.13381.38597.101200300000000","itemId":"575804584009","itemName":"南极人保暖内衣男加绒加厚情侣女加肥加大码秋衣秋裤套装棉毛衫ZB","itemPic":"//gw.alicdn.com/bao/uploaded/i1/738722023/O1CN011QoZhqJ6Npd949m_!!0-item_pic.jpg","itemPrice":"179.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=575804584009&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"6","goodsList":[{"bulk":"false","createTime":"1551329178000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"3层重磅加厚高达550G【预】","customizedItemRights":"","defaultRight":"3层重磅加厚高达550G【预】","liveId":"null","materialName":"liveItem_497019252"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=576878099970&scm=1007.13381.38597.101200300000000","itemId":"576878099970","itemName":"南极人保暖内衣男加绒加厚女士冬季打底秋衣秋裤套装大码棉毛衫ZB","itemPic":"//gw.alicdn.com/bao/uploaded/i3/738722023/O1CN01VxVnCx1QoZiSRDjJC_!!0-item_pic.jpg","itemPrice":"159.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=576878099970&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"5","goodsList":[{"bulk":"false","createTime":"1551324281000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"四季穿不闷热 亲肤透气不瘙痒 健康优质纯棉","customizedItemRights":"","defaultRight":"四季穿不闷热 亲肤透气不瘙痒 健康优质纯棉","liveId":"null","materialName":"liveItem_496911231"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=543229758847&scm=1007.13381.38597.101200300000000","itemId":"543229758847","itemName":"南极人男士内裤男平角裤纯棉青年透气韩版全棉四角裤头短裤衩潮LM","itemPic":"//gw.alicdn.com/bao/uploaded/i1/738722023/O1CN011QoZiThL9G1HglG_!!0-item_pic.jpg","itemPrice":"49.90","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=543229758847&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"4","goodsList":[{"bulk":"false","createTime":"1551321189000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"德绒发热纤维，舒适保暖","customizedItemRights":"","defaultRight":"德绒发热纤维，舒适保暖","liveId":"null","materialName":"liveItem_496735810"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=575851669945&scm=1007.13381.38597.101200300000000","itemId":"575851669945","itemName":"南极人保暖内衣男加绒加厚德绒自发热女士秋衣秋裤套装棉毛衫ZB","itemPic":"//gw.alicdn.com/bao/uploaded/i2/738722023/O1CN011QoZhr4cqctO5aH_!!0-item_pic.jpg","itemPrice":"119.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=575851669945&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"3","goodsList":[{"bulk":"false","createTime":"1551237021000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"一脚套设计；彰显时尚休闲","customizedItemRights":"","defaultRight":"一脚套设计；彰显时尚休闲","liveId":"null","materialName":"liveItem_495119595"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=586655825409&scm=1007.13381.38597.101200300000000","itemId":"586655825409","itemName":"Skechers斯凯奇男鞋新款橡筋一脚套运动鞋 时尚轻质休闲鞋666082","itemPic":"//gw.alicdn.com/bao/uploaded/i4/2129855716/O1CN01npzrUw1s5yPQv6a0A_!!0-item_pic.jpg","itemPrice":"469.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=586655825409&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"2","goodsList":[{"bulk":"false","createTime":"1551237010000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"轻质舒适；时尚休闲","customizedItemRights":"","defaultRight":"轻质舒适；时尚休闲","liveId":"null","materialName":"liveItem_492014541"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=586656053149&scm=1007.13381.38597.101200300000000","itemId":"586656053149","itemName":"Skechers斯凯奇男鞋新款时尚一脚套运动鞋 轻质舒适跑步鞋 55113","itemPic":"//gw.alicdn.com/bao/uploaded/i2/2129855716/O1CN01GocIL71s5yPNRIyoa_!!0-item_pic.jpg","itemPrice":"539.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=586656053149&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"},{"explained":"false","goodsIndex":"1","goodsList":[{"bulk":"false","createTime":"1551232375000","duplicate":"false","extendVal":{"isCpc":"0","subTitle":"简洁厚实大底；时尚运动风格","customizedItemRights":"","defaultRight":"简洁厚实大底；时尚运动风格","liveId":"null","materialName":"liveItem_492066235"},"favored":"false","goodsIndex":"0","groupNum":"0","hasDiscount":"false","isCpc":"0","itemH5TaokeUrl":"//h5.m.taobao.com/awp/core/detail.htm?id=584479513020&scm=1007.13381.38597.101200300000000","itemId":"584479513020","itemName":"Skechers斯凯奇男鞋复古运动鞋 跑步鞋厚底增高潮鞋老爹鞋休闲鞋","itemPic":"//gw.alicdn.com/bao/uploaded/i1/2129855716/O1CN01lhBO2T1s5yPDlJg6K_!!0-item_pic.jpg","itemPrice":"569.00","itemUrl":"//taoke.mdaren.taobao.com/item.htm?itemId=584479513020&accountId=1950250590&bizType=taolive&utparam=%7B%22_tbk%22:%221%22%7D&scm=1007.13381.38597.101200300000000&pg1stepk=ucm:219968464906_1950250590&spm=a2141.8001249","liveId":"219968464906","sellerId":"0"}],"sliceNum":"0"}]
+      // let list = []
+      // def.forEach(item => {
+      //   let goods = item.goodsList[0]
+      //   let { itemName, itemPrice, itemId, itemPic, itemUrl } = goods
+      //   let goodsItem = {
+      //     itemTitle: itemName,
+      //     itemPrice,
+      //     itemId,
+      //     url: `https://item.taobao.com/item.htm?id=${itemId}`,
+      //     imgUrl: itemPic,
+      //     // 优惠券链接
+      //     link: '',
+      //     // 利益点
+      //     right: goods.extendVal.customizedItemRights,
+      //     isShelves: true,
+      //     current: false
+      //   }
+      //   list.unshift(goodsItem)
+      // })
+      // this.upGoodsList = list
+      this.upGoodsList = loadStorage('upGoodsList') || def
+      if (this.upGoodsList.length === 0) {
+        this.$message.error('还没有上架宝贝')
+        return
+      }
       this.dialogVisible = true
     },
     // 检测是否被关联
@@ -239,6 +247,7 @@ export default {
       })
       return ret
     },
+    // 选择商品
     selectGoods(index) {
       let type = this.checkSelect(index)
       // 正常选择
@@ -282,78 +291,152 @@ export default {
         }
       }
     },
-    // 添加到公告列表
-    addNotice() {
-      if (this.replyObj.content === '') {
-        return
+    // 重置规则
+    resetReplyObj() {
+      this.replyObj = {
+        keyList: [],
+        content: '',
+        segList: [],
+        itemList: []
       }
-      let item = {
-        content: this.replyObj.content,
-        type: this.noticeType,
-        time: this.noticeTime,
-        before: '',
-        after: '',
-        id: new Date().getTime(),
-        isSending: false
+      this.newFlag = true
+      this.currentIndex = -1
+    },
+    // 设置选中行背景
+    rowClassName({row, rowIndex}) {
+      let ret = ''
+      if (rowIndex === this.currentIndex) {
+        ret = 'current-row'
       }
-      this.replyList.push(item)
-      this.currentIndex = this.replyList.length - 1
-      this.savereplyList()
-      this.$nextTick(() => {
-        this.setCurrentIndex(item)
+      return ret
+    },
+    // 保存设置
+    saveSettings() {
+      if (this.currentIndex === -1) {
+        let obj = {
+          setList: [],
+          id: new Date().getTime(),
+          cmtCount: 0,
+          replyCount: 0,
+          replying: false
+        }
+        this.replyList.push(Object.assign({}, obj, this.replyObj))
+      }
+    },
+    getComments() {
+      let t = new Date().getTime()
+      let appKey = '12574478'
+      
+      let data = JSON.stringify({
+        limit: 20,
+        topic: window.pageData && window.pageData.liveDO && window.pageData.liveDO.topic,
+        tab: 2,
+        order: 'acs',
+        paginationContext: this.paginationContext || null,
+        from: 'zhongkong'
+      })
+      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
+      let sign = setPass(key)
+      let params = {
+        jsv: '2.5.0',
+        appKey: '12574478',
+        t,
+        sign,
+        api: 'mtop.taobao.iliad.comment.query.latest',
+        v: '1.0',
+        type: 'jsonp',
+        dataType: 'jsonp',
+        data
+      }
+      // let res =  {"api":"mtop.taobao.iliad.comment.query.latest","data":{"comments":[{"commentId":"220352186503","commodities":[],"content":"3","paginationContext":"{\"commentId\":220352186503,\"refreshTime\":1551510868123,\"timestamp\":1551508851000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551508851000"},{"commentId":"220236212489","commodities":[],"content":"1","paginationContext":"{\"commentId\":220236212489,\"refreshTime\":1551510868123,\"timestamp\":1551509136000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509136000"},{"commentId":"220294117651","commodities":[],"content":"1号","paginationContext":"{\"commentId\":220294117651,\"refreshTime\":1551510868123,\"timestamp\":1551509207000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509207000"},{"commentId":"220236936319","commodities":[],"content":"3","paginationContext":"{\"commentId\":220236936319,\"refreshTime\":1551510868123,\"timestamp\":1551509822000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509822000"},{"commentId":"220236908595","commodities":[],"content":"3号","paginationContext":"{\"commentId\":220236908595,\"refreshTime\":1551510868123,\"timestamp\":1551509855000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509855000"},{"commentId":"220294709699","commodities":[],"content":"1","paginationContext":"{\"commentId\":220294709699,\"refreshTime\":1551510868123,\"timestamp\":1551509866000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509866000"},{"commentId":"220237032749","commodities":[],"content":"3","paginationContext":"{\"commentId\":220237032749,\"refreshTime\":1551510868123,\"timestamp\":1551509997000}","pictures":[],"publisherIcon":"//wwc.alicdn.com/avatar/getAvatar.do?userId=304008107&width=40&height=40&type=sns","publisherId":"304008107","publisherNick":"魂独殇","renders":{"taoqihi":"499","render_audit":"true","APASS_USER":"0","fanLevel":"0","appkey":"21380790","VIP_USER":"0"},"replyToCommentId":"0","replyToUserId":"0","timestamp":"1551509997000"}],"delay":"5000","paginationContext":"{\"commentId\":220237032749,\"refreshTime\":1551510868123,\"timestamp\":1551509997000}"},"ret":["SUCCESS::调用成功"],"v":"1.0"}
+      getCommon(params).then(res => {
+        // console.log(res)
+        if (res.data.comments) {
+          let comments = res.data.comments
+          comments.forEach(item => {
+            let content = item.content
+            let isMatch = false
+            let matchIndex = -1
+            this.replyList.forEach((reply, index) => {
+              reply.keyList.forEach(key => {
+                if (content === key + '') {
+                  isMatch = true
+                  matchIndex = index
+                }
+              })
+            })
+            // 如果有
+            let currentReply = this.replyList[matchIndex]
+            if (isMatch && this.paginationContext && currentReply.replying) {
+              currentReply.cmtCount++
+              let segList = currentReply.segList
+              let _sendList = (i) => {
+                this.sendReply({
+                  commentId: item.commentId,
+                  content: segList[i].msg
+                })
+                if (i < segList.length - 1) {
+                  setTimeout(() => {
+                    _sendList(i + 1)
+                  }, 4000)
+                }
+              }
+              if (segList.length > 0) {
+                _sendList(0)
+              }
+            }
+          })
+        }
+        this.paginationContext = res.data.paginationContext
       })
     },
-    // 发送公告
-    sendNotice(row) {
-      if (!row.content) {
-        this.$message.error('公告内容不能为空!')
-        return
-      }
-      // {"parentId":"219528268702","feedId":"","interactiveName":"","feedType":707,"title":"好的"}
-      let draft = {
-        parentId: this.feedId,
-        feedId: '',
-        feedType: '707',
-        interactiveName: '',
-        title: row.content
-      }
+    // 发送自动回复
+    sendReply({commentId, content}) {
+      // console.log(commentId, content)
+      let t = new Date().getTime()
+      let appKey = '12574478'
+      
+      let data = JSON.stringify({
+        topic: window.pageData && window.pageData.liveDO && window.pageData.liveDO.topic,
+        content: content,
+        isReply: true,
+        replyToCommentId: commentId,
+        isPrivate: true,
+        namespace: '200001'
+      })
+      let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
+      let sign = setPass(key)
       let params = {
-        conditions: 'null',
-        _input_charset: 'utf-8',
-        draft: encodeURIComponent(JSON.stringify(draft))
+        jsv: '2.5.0',
+        appKey: '12574478',
+        t,
+        sign,
+        api: 'mtop.taobao.iliad.comment.publish',
+        v: '1.0',
+        type: 'jsonp',
+        dataType: 'jsonp',
+        data
       }
-      // let res = {
-      //   success: true
-      // }
-      commonPush(params).then(res => {
-        if (res.success) {
-          this.$message({
-            message: '发送公告成功',
-            type: 'success'
-          })
-          if (row.type === 2) {
-            row.isSending = true
-            this._runAutoSend(row)
-          }
-        } else {
-          this.$message.error('发送公告失败')
-        }
+      getCommon(params).then(res => {
+        // console.log(res)
       })
     },
     // 自动发送
-    _runAutoSend(row) {
-      clearTimeout(this.sendTimers[row.id])
-      this.sendTimers[row.id] = setTimeout(() => {
-        this.sendNotice(row)
-      }, row.time * 1000)
+    _runAutoReply() {
+      this.getComments()
+      this.sendTimer = setTimeout(() => {
+        this._runAutoReply()
+      }, 5000)
     },
-    stopSending(row) {
-      clearTimeout(this.sendTimers[row.id])
-      row.isSending = false
+    runReply(row) {
+      row.replying = true
+    },
+    stopReply(row) {
+      row.replying = false
     },
     // 删除item
     delItem(index) {
-      this.$confirm('此操作将删除该公告, 是否继续?', '提示', {
+      this.$confirm('此操作将删除该回复, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -375,10 +458,11 @@ export default {
       this.replyList.forEach((item, index) => {
         if (row.id === item.id) {
           this.currentIndex = index
-          this.replyObj.keyList = item.keyList
-          this.replyObj.content = item.content
-          this.replyObj.itemList = item.itemList
-          // this.replyObj = item
+          // this.replyObj.keyList = item.keyList
+          // this.replyObj.content = item.content
+          // this.replyObj.itemList = item.itemList
+          this.newFlag = false
+          this.replyObj = item
         }
       })
     },
@@ -534,6 +618,9 @@ export default {
   }
   .el-table__expand-icon {
     display: none;
+  }
+  .current-row{
+    background: #ecf5ff;
   }
 }
 </style>

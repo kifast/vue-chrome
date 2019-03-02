@@ -29,6 +29,16 @@ export function liveAction(data) {
   params = params.substr(0, params.length - 1)
   return api.post(`/live/action.do${params}`, {})
 }
+// 获取公用接口
+export function getCommon(data) {
+  let options = {
+    param: 'callback',
+    prefix: 'mtopjsonp1'
+  }
+  let url = `https://h5api.m.taobao.com/h5/${data.api}/${data.v}/`
+  data.__ = 'ji'
+  return jsonp(url, data, options)
+}
 // 获取上架的商品列表
 export function getUpGoodsList(data) {
   let options = {

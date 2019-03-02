@@ -7,7 +7,7 @@
         <span class="jimei-version">v1.0</span>
       </div>
       <el-tabs type="border-card">
-        <el-tab-pane label="自动回复">
+        <el-tab-pane label="自动回复" v-if="replyFlag">
           <autoReply></autoReply>
         </el-tab-pane>
         <el-tab-pane label="宝贝管理">
@@ -37,7 +37,8 @@ export default {
   name: 'App',
   data() {
     return {
-      currentIndex: 0
+      currentIndex: 0,
+      replyFlag: sessionStorage.reply
     }
   },
   components: {
