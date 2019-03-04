@@ -173,6 +173,10 @@ export default {
   },
   methods: {
     handleClose(tag) {
+      if (this.currentIndex > -1 && this.replyObj.keyList.length === 1) {
+        this.$message.error('关键字不能为空')
+        return
+      }
       this.replyObj.keyList.splice(this.replyObj.keyList.indexOf(tag), 1)
     },
     showInput() {
@@ -222,7 +226,7 @@ export default {
       //   list.unshift(goodsItem)
       // })
       // this.upGoodsList = list
-      this.upGoodsList = loadStorage('upGoodsList') || def
+      this.upGoodsList = loadStorage('upGoodsList') || []
       if (this.upGoodsList.length === 0) {
         this.$message.error('还没有上架宝贝')
         return

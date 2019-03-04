@@ -250,7 +250,7 @@ export default {
             this.currentShop.isSending = true
           }
         } else {
-          this.$message.error('发送关注卡片失败，请稍后再试')
+          this.$message.error(res.msgInfo || '发送关注卡片失败，请稍后再试')
         }
         // 如果是自动发送
         if (this.currentShop.type === 2) {
