@@ -41,7 +41,7 @@
             <el-button size="mini" @click="refreshGoods">刷新</el-button>
             <el-button size="mini" :disabled="realIndex===0" @click="prevMove">前移</el-button>
             <el-button size="mini" :disabled="realIndex===goodsList.length-1" @click="nextMove">后移</el-button>
-            <el-button type="success" size="small" @click="goodsOnShelvesConfirm">上架</el-button>
+            <el-button type="success" size="small" @click="clickGoodsOnShelves">上架</el-button>
             <el-button type="danger" size="small" @click="delGoods">删除商品</el-button>
           </div>
         </div>
@@ -59,6 +59,9 @@
         </div>
         <div class="goods-item">
           <el-button type="primary" @click="showBatchAdd">批量添加宝贝</el-button>
+        </div>
+        <div class="goods-item" v-if="this.goodsList.length > 0">
+          <el-button type="success" @click="allGoodsUp">全部上架</el-button>
         </div>
       </div>
     </div>
@@ -359,11 +362,14 @@ export default {
     handleSelectionChange(val) {
       this.batchSelection = val
     },
-    // 上架二次确认框
-    goodsOnShelvesConfirm() {
+    clickGoodsOnShelves() {
       let currentGood = this.allGoodsList[this.currentIndex]
       this.waitUpList = []
       this.waitUpList.push(currentGood)
+      this.goodsOnShelvesConfirm()
+    },
+    // 上架二次确认框
+    goodsOnShelvesConfirm() {
       let count = 0
       this.waitUpList.forEach(item => {
         if (item.right === '') {
@@ -377,16 +383,18 @@ export default {
         type: 'warning'
       })
         .then(() => {
-          this.goodsOnShelves()
+          this.waitUpList.forEach((item, index) => {
+            this.goodsOnShelves(item)
+          })
         })
         .catch(() => {})
     },
     // 上架宝贝
-    goodsOnShelves() {
-      if (this.currentIndex < 0) {
-        return
-      }
-      let currentGood = this.allGoodsList[this.currentIndex]
+    goodsOnShelves(currentGood) {
+      // if (this.currentIndex < 0) {
+      //   return
+      // }
+      // let currentGood = this.allGoodsList[this.currentIndex]
       let draft = {
         feedType: '502',
         roomType: 0,
@@ -416,6 +424,14 @@ export default {
           this.getUpGoods()
         }
       })
+    },
+    // 上架全部宝贝
+    allGoodsUp() {
+      this.waitUpList = []
+      this.goodsList.forEach((item, index) => {
+        this.waitUpList.push(item)
+      })
+      this.goodsOnShelvesConfirm()
     },
     // 删除商品
     delGoods() {
