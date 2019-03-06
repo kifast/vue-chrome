@@ -27,7 +27,7 @@
       <el-table class="shop-list" :data="shopList" style="width: 100%" @row-click="setCurrentIndex" :row-key="getRowKeys" :expand-row-keys="expands">
         <el-table-column type="expand" width="10">
           <template slot-scope="scope">
-            <div>间隔时间：<el-radio v-model="scope.row.type" :label="1" @change="saveShopList">手动</el-radio>
+            <div>间隔时间：<el-radio v-model="scope.row.type" :label="1" @change="stopAutoSend(scope.row)">手动</el-radio>
               <el-radio v-model="scope.row.type" :label="2" @change="saveShopList">自动</el-radio>
               <el-input-number size="mini" v-model="scope.row.time" :disabled="scope.row.type==1" :min="300" @change="saveShopList"></el-input-number> 秒
             </div>
@@ -44,14 +44,18 @@
             <img class="shop-img" :src="scope.row.avatar" alt="">
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="名称" width="180">
+        <el-table-column prop="title" label="名称" width="120">
         </el-table-column>
-        <el-table-column prop="time" label="间隔时间">
+        <el-table-column prop="time" label="间隔时间" align="center">
           <template slot-scope="scope">
             {{scope.row.time>0&&scope.row.type===2?scope.row.time+'秒':'-'}}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="publishTime" label="上次执行" align="center">
+        </el-table-column>
+        <el-table-column prop="nextPublishTime" label="下次执行" align="center">
+        </el-table-column>
+        <el-table-column label="操作" width="160">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click.stop="addMaterial(scope.$index)" v-if="!scope.row.isSending" :disabled="sendFlag">{{scope.row.type===1?'普通':'定时'}}发送</el-button>
             <el-button size="mini" type="primary" @click.stop="stopSending(scope.row)" v-if="scope.row.isSending">停止发送</el-button>
@@ -103,10 +107,18 @@ export default {
     let key = 'shopList_' + this.liveId
     if (loadStorage(key)) {
       this.shopList = loadStorage(key)
-      this.shopList.forEach(item => {
-        item.isSending = false
+      this.shopList.forEach((item, index) => {
+        if (item.isSending) {
+          this.setCurrentIndex(item, 1)
+          item.publishTime = '-'
+          item.nextPublishTime = this.getNextTime()
+          this._runAutoSend()
+        } else {
+          item.publishTime = '-'
+          item.nextPublishTime = '-'
+        }
       })
-      this.setCurrentIndex(this.shopList[0])
+      // this.setCurrentIndex(this.shopList[0])
     }
     // this.currentIndex = this.shopList.length - 1
     if (window.pageData && window.pageData.userInfo) {
@@ -143,13 +155,15 @@ export default {
               isSending: false,
               time: 300,
               userId: res.userId,
-              id: new Date().getTime()
+              id: new Date().getTime(),
+              publishTime: '-',
+              nextPublishTime: '-'
             }
             this.shopList.push(item)
             this.currentIndex = this.shopList.length - 1
             this.saveShopList()
             this.$nextTick(() => {
-              this.setCurrentIndex(item)
+              this.setCurrentIndex(item, 1)
             })
           }
         }
@@ -166,7 +180,7 @@ export default {
         }
       })
       this.currentIndex = index
-      this.setCurrentIndex(index)
+      this.setCurrentIndex(this.shopList[index], 1)
       let data = {
         bizType: '7',
         source: 'followcard',
@@ -235,6 +249,7 @@ export default {
       // let res = {
       //   success: true
       // }
+      // let res = {"headers":{},"model":{"title":"构美官方直播","publishTime":"14:51"},"httpStatusCode":200,"msgCode":"SUCCESS","msgInfo":"成功","success":true}
       commonPush(params).then(res => {
         if (res.success) {
           //  成功之后禁用发送按钮10秒钟
@@ -246,8 +261,11 @@ export default {
             message: '发送关注卡片成功',
             type: 'success'
           })
+
+          this.currentShop.publishTime = this.getTime(new Date())
           if (this.currentShop.type === 2) {
             this.currentShop.isSending = true
+            this.currentShop.nextPublishTime = this.getNextTime()
           }
         } else {
           this.$message.error(res.msgInfo || '发送关注卡片失败，请稍后再试')
@@ -258,12 +276,26 @@ export default {
         }
       })
     },
+    getTime(myDate) {
+      let hour = myDate.getHours()
+      let minute = myDate.getMinutes()
+      let second = myDate.getSeconds()
+      return `${hour}:${minute < 10 ? '0' + minute : minute}:${second < 10 ? '0' + second : second}`
+    },
+    getNextTime() {
+      let time = new Date().getTime() + this.currentShop.time * 1000
+      return this.getTime(new Date(time))
+    },
     // 自动发送
     _runAutoSend() {
       clearTimeout(this.sendTimer)
       this.sendTimer = setTimeout(() => {
         this.addMaterial(this.currentIndex)
-      }, this.currentShop.time * 1000)
+      }, (this.currentShop.time * 1 + 1) * 1000)
+    },
+    stopAutoSend(row) {
+      this.stopSending(row)
+      this.saveShopList()
     },
     // 停止发送
     stopSending(row) {
@@ -291,7 +323,7 @@ export default {
         .catch(() => {})
     },
     // 点击某一行
-    setCurrentIndex(row) {
+    setCurrentIndex(row, flag) {
       this.shopList.forEach((item, index) => {
         if (row.id === item.id) {
           // console.log(index)
@@ -302,10 +334,14 @@ export default {
               this.expands = []
               this.expands.push(id)
             } else {
-              this.expands = []
+              if (flag !== 1) {
+                this.expands = []
+              }
             }
           } else {
-            this.expands.push(id)
+            if (flag !== 1) {
+              this.expands.push(id)
+            }
           }
         }
       })
@@ -317,13 +353,12 @@ export default {
   },
   components: {},
   watch: {
-    // shopList: {
-    //   handler(val) {
-    //     console.log('change')
-    //     this.saveShopList()
-    //   },
-    //   deep: true
-    // }
+    shopList: {
+      handler(val) {
+        this.saveShopList()
+      },
+      deep: true
+    }
   }
 }
 </script>
@@ -374,6 +409,10 @@ export default {
   .el-icon-arrow-right,
   .el-icon-arrow-down {
     font-size: 12px;
+  }
+  .el-button--mini,
+  .el-button--mini.is-round {
+    padding: 7px 10px;
   }
 }
 </style>
