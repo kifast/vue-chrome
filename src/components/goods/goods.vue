@@ -566,7 +566,7 @@ export default {
       let appKey = '12574478'
 
       // let nData = '{"pageCode":"mainIndex","ua":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36","params":"{\"url\":\"https://h5.m.taobao.com/\",\"referrer\":\"https://liveplatform.taobao.com/live/live_detail.htm?id=219685085515&openHlvPush=true\",\"oneId\":null,\"fid\":\"dqYCjwrIF0A\"}'
-      let data = JSON.stringify({ liveId: this.liveId, creatorId: this.creatorId, n: 20, groupNum: 0 })
+      let data = JSON.stringify({ liveId: this.liveId, creatorId: this.creatorId, n: 100, groupNum: 0 })
       let key = getMH5Token() + '&' + t + '&' + appKey + '&' + data
       // console.log(key)
       let sign = setPass(key)
