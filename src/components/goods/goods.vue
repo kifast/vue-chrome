@@ -51,7 +51,7 @@
       <div class="goods-list">
         <div class="goods-item" v-for="(item, index) in allGoodsList" :key="index" @click="selectGoods(index)">
           <el-button :type="item.isShelves?'danger':'success'" :plain="!(item.current || currentIndex===index)" :size="currentIndex===index?'':'small'" style="width: 50px; padding: 9px 0; text-align: center;">{{index+1}}</el-button>
-          <i v-if="item.right" class="el-icon-circle-check"></i>
+          <i v-if="item.right" class="el-icon-circle-check" :title="item.right"></i>
           <i v-if="item.coupon&&item.coupon.shopNick" class="el-icon-tickets"></i>
         </div>
         <div class="goods-item">
