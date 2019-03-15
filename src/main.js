@@ -1,5 +1,6 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+console.log('jimei init')
 import Vue from 'vue'
 import App from './App'
 import ElementUI from 'element-ui'
@@ -8,7 +9,6 @@ import 'element-ui/lib/theme-chalk/index.css'
 Vue.use(ElementUI)
 
 Vue.config.productionTip = false
-
 var jimei = {
   count: 0,
   insertAfter(newElement, targetElement) {
@@ -35,7 +35,7 @@ var jimei = {
       this.count++
       // 1秒再执行
       setTimeout(() => {
-        if (count < 11) {
+        if (this.count < 11) {
           this.init()
         }
       }, 1000)

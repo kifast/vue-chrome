@@ -23,6 +23,9 @@
           <autoReply></autoReply>
         </el-tab-pane>
       </el-tabs>
+      <div style="margin-top: 15px;">
+        <data-board></data-board>
+      </div>
     </div>
   </div>
 </template>
@@ -33,6 +36,7 @@ import Notice from './components/notice/notice'
 import Goods from './components/goods/goods'
 import Coupon from './components/coupon/coupon'
 import autoReply from './components/autoReply/autoReply'
+import dataBoard from './components/dataBoard/dataBoard'
 export default {
   name: 'App',
   data() {
@@ -45,7 +49,8 @@ export default {
     Notice,
     Goods,
     Coupon,
-    autoReply
+    autoReply,
+    dataBoard
   }
 }
 </script>

@@ -151,7 +151,7 @@ export default {
             let item = {
               avatar: res.pictureUrl,
               title: res.title,
-              type: 1,
+              type: 2,
               isSending: false,
               time: 300,
               userId: res.userId,
