@@ -22,11 +22,12 @@ export default {
       this.getLiveData()
   },
   methods: {
-    formatLiveSourceTime() {
-        console.log(this.liveSourceTimeList)
+    // 格式化echarts的option
+    formatEchartsData(list) {
+        // console.log(this.liveSourceTimeList)
         let legend = []
         let xAxisDate = []
-        let list = this.liveSourceTimeList
+        // let list = this.liveSourceTimeList
         list.forEach(item => {
             item.x = formatTime(item.x, 'hh:mm')
             if (!legend.includes(item.title)) {
@@ -36,76 +37,115 @@ export default {
                 xAxisDate.push(item.x)
             }
         })
-        console.log(legend, xAxisDate)
-        this.$nextTick(() => {
-            this.initLiveSourceTime()
+        let series = []
+        legend.forEach((legendItem, index) => {
+            let data = []
+            list.forEach(listItem => {
+                if (listItem.title === legendItem) {
+                    data.push(listItem.y)
+                }
+            })
+            let serie = {
+                name: legendItem,
+                type: 'line',
+                stack: '总量' + (index + 1),
+                data
+            }
+            series.push(serie)
         })
-    },
-    initLiveSourceTime() {
-        this.liveSourceTime = echarts.init(document.getElementById('liveSourceTime'))
         let option = {
             tooltip : {
                 trigger: 'axis'
             },
             legend: {
-                data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
+                data: legend
             },
-            // toolbox: {
-            //     show : true,
-            //     feature : {
-            //         mark : {show: true},
-            //         dataView : {show: true, readOnly: false},
-            //         magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
-            //         restore : {show: true},
-            //         saveAsImage : {show: true}
-            //     }
-            // },
-            // calculable : true,
-            xAxis : [
-                {
-                    type : 'category',
-                    // boundaryGap : false,
-                    data : ['周一','周二','周三','周四','周五','周六','周日']
-                }
-            ],
+            xAxis: [{
+                type : 'category',
+                data : xAxisDate
+            }],
             yAxis : [
                 {
                     type : 'value'
                 }
             ],
-            series : [
-                {
-                    name:'邮件营销',
-                    type:'line',
-                    stack: '总量1',
-                    data:[120, 132, 101, 134, 90, 230, 210]
-                },
-                {
-                    name:'联盟广告',
-                    type:'line',
-                    stack: '总量2',
-                    data:[220, 182, 191, 234, 290, 330, 310]
-                },
-                {
-                    name:'视频广告',
-                    type:'line',
-                    stack: '总量3',
-                    data:[150, 232, 201, 154, 190, 330, 410]
-                },
-                {
-                    name:'直接访问',
-                    type:'line',
-                    stack: '总量4',
-                    data:[320, 332, 301, 334, 390, 330, 320]
-                },
-                {
-                    name:'搜索引擎',
-                    type:'line',
-                    stack: '总量5',
-                    data:[820, 932, 901, 934, 1290, 1330, 1320]
-                }
-            ]
+            series
         }
+        return option
+    },
+    initTotalLiveTime() {
+        let option = this.formatEchartsData(this.totalLiveTimeList)
+        this.$nextTick(() => {
+            this.liveSourceTime = echarts.init(document.getElementById('liveSourceTime'))
+            this.liveSourceTime.setOption(option)
+        })
+    },
+    initLiveSourceTime() {
+        this.liveSourceTime = echarts.init(document.getElementById('liveSourceTime'))
+        let option = this.formatEchartsData(this.liveSourceTimeList)
+        // let option = {
+        //     tooltip : {
+        //         trigger: 'axis'
+        //     },
+        //     legend: {
+        //         data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
+        //     },
+        //     // toolbox: {
+        //     //     show : true,
+        //     //     feature : {
+        //     //         mark : {show: true},
+        //     //         dataView : {show: true, readOnly: false},
+        //     //         magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+        //     //         restore : {show: true},
+        //     //         saveAsImage : {show: true}
+        //     //     }
+        //     // },
+        //     // calculable : true,
+        //     xAxis : [
+        //         {
+        //             type : 'category',
+        //             // boundaryGap : false,
+        //             data : ['周一','周二','周三','周四','周五','周六','周日']
+        //         }
+        //     ],
+        //     yAxis : [
+        //         {
+        //             type : 'value'
+        //         }
+        //     ],
+        //     series : [
+        //         {
+        //             name:'邮件营销',
+        //             type:'line',
+        //             stack: '总量1',
+        //             data:[120, 132, 101, 134, 90, 230, 210]
+        //         },
+        //         {
+        //             name:'联盟广告',
+        //             type:'line',
+        //             stack: '总量2',
+        //             data:[220, 182, 191, 234, 290, 330, 310]
+        //         },
+        //         {
+        //             name:'视频广告',
+        //             type:'line',
+        //             stack: '总量3',
+        //             data:[150, 232, 201, 154, 190, 330, 410]
+        //         },
+        //         {
+        //             name:'直接访问',
+        //             type:'line',
+        //             stack: '总量4',
+        //             data:[320, 332, 301, 334, 390, 330, 320]
+        //         },
+        //         {
+        //             name:'搜索引擎',
+        //             type:'line',
+        //             stack: '总量5',
+        //             data:[820, 932, 901, 934, 1290, 1330, 1320]
+        //         }
+        //     ]
+        // }
         this.liveSourceTime.setOption(option)
                     
     },
@@ -120,7 +160,9 @@ export default {
     //   commonPush(params).then(res => {
           console.log(res)
           this.liveSourceTimeList = res.model.data.liveSourceTimeList
-          this.formatLiveSourceTime()
+          this.totalLiveTimeList = res.model.data.totalLiveTimeList
+        //   this.formatLiveSourceTime(this.liveSourceTimeList)
+        this.initTotalLiveTime()
     //   })
     }
   },
